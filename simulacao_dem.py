@@ -8,12 +8,13 @@ import time
 # Simulation parameters taken from BIRWISCH et al., 2009
 
 # Material
-N = 20. # Number of grains
-RADIUS = 1.5E-4 # Radius of each grain --- (m)
+N = 20 # Number of grains
+#RADIUS = 1.5E-4 # Radius of each grain --- (m)
+RADIUS = 0.25 # Radius of each grain --- (m)
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
-E_TILDE = 1.0E7 # Young's modulus / (1 - nu^2) --- (Pa)
+E_TILDE = 1.0E-6 # Young's modulus / (1 - nu^2) --- (Pa)
 GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
 KAPPA_R = 1.0E6 # Kappa / R --- (Pa)
 MU_W = 0.15 # --- (dimensionless)
@@ -37,36 +38,70 @@ DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 GRAVITAL_FORCE = MASS*G
 EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
 
+# Constants to be used with the data matrices
+X = 0
+Y = 1
+VX = 2
+VY = 3
+FX = 4
+FY = 5
+
 # Initializing matrices
-EMPTY_MATRIX = np.zeros((N, DIMENSIONS))
-forces_matrix = np.copy(EMPTY_MATRIX)
-last_forces_matrix = np.copy(EMPTY_MATRIX)
-last_positions_matrix = np.copy(EMPTY_MATRIX)
-last_velocities_matrix = np.copy(EMPTY_MATRIX)
-velocities_matrix = np.copy(EMPTY_MATRIX)
-positions_matrix = np.random.random_sample((N, DIMENSIONS))
-print positions_matrix
+EMPTY_MATRIX = np.zeros((N, DIMENSIONS*3.)) # Each matrix has 2 dimensions x 3 types of values (X, Y, VX, VY, FX, FY)
+current_matrix = np.copy(EMPTY_MATRIX)
+last_matrix = np.copy(EMPTY_MATRIX)
+current_matrix[:,X:Y+1] = np.random.random_sample((N, DIMENSIONS))
 
-def add_gravity_force(forces_matrix):
-    forces_matrix[:,1] -= GRAVITAL_FORCE
-    return forces_matrix
+def add_gravity_force(current_matrix):
+    current_matrix[:,5] =- GRAVITAL_FORCE
+    return current_matrix
 
-def add_repulsion_force(forces_matrix, positions_matrix):
+def calculate_contact_forces(other_particle, current_particle):
+    # Distance between particles
+    contact_forces = np.zeros(2)
+    distance = ((current_particle[X]-other_particle[X])**2. + (current_particle[Y]-other_particle[Y])**2.)**0.5
+    radial_unitary_vector = (current_particle[X:Y+1] - other_particle[X:Y+1])/distance
+    # There is contact forces only if particles are closer than the sum of their radii
+    if distance <= 2.*RADIUS:
+        # Repulsion force
+        contact_forces += 2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * distance**(3./2.) * radial_unitary_vector
+    return contact_forces
+
+def region_of_contact_forces(current_matrix, current_particle_index, max_neighbour_index):
+    # Particles i through max_neighbour_index are the ones which may interact (based solely on x distance)
+    region_of_interest = current_matrix[current_particle_index+1:max_neighbour_index+1, :]
+    if region_of_interest.size > 0:
+        contact_forces = np.apply_along_axis(calculate_contact_forces, Y, region_of_interest, current_matrix[current_particle_index,:])
+        region_of_interest[:,FX:FY+1] += contact_forces 
+        current_matrix[current_particle_index, FX:FY+1] += -contact_forces.sum(axis=0)
+    return current_matrix
+
+def add_contact_forces(current_matrix):
     # First, we sort by x position so we can easily ignore lots of interactions
-    return forces_matrix
+    current_matrix = current_matrix[current_matrix[:,X].argsort()]
+    # Now we iterate over every particle, only accounting other particles which x_i - x_j <= RADIUS
+    # Last particle shouldn't interact with any other. It already interacted with the previous ones.
+    for i in range (0, N-1):
+        # np.argmax returns the minimum index wich satisfies some arbitrary condition
+        # TODO: improve the following line, because argmax does not stop at first ocurrence
+        max_neighbour_index = i + np.argmax(current_matrix[i+1:, X] > current_matrix[i, X] + RADIUS)
+        current_matrix = region_of_contact_forces(current_matrix, i, max_neighbour_index)
+    return current_matrix
 
-def add_stoke_air_drag_force(forces_matrix, velocities_matrix):
-    return forces_matrix - 6 * PI * MU_A * RADIUS * velocities_matrix
+def add_stoke_air_drag_force(current_matrix):
+    return current_matrix
+    #return forces_matrix - 6 * PI * MU_A * RADIUS * velocities_matrix
 
-def calculate_velocities(forces_matrix, last_forces_matrix, last_velocities_matrix):
-    return last_velocities_matrix + (forces_matrix + last_forces_matrix)/(2*MASS) * DT
+def calculate_velocities(current_matrix, last_matrix):
+    current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + (current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1])/(2*MASS) * DT
+    return current_matrix
 
-def calculate_positions(last_forces_matrix, last_positions_matrix, last_velocities_matrix):
-    positions_matrix = last_positions_matrix + last_velocities_matrix*DT + last_forces_matrix/(2*MASS) * DT**2
+def calculate_positions(current_matrix, last_matrix):
+    current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + last_matrix[:,FX:FY+1]/(2*MASS) * DT**2
     # Boundary conditions
-    positions_matrix[:,0] = np.clip(positions_matrix[:,0], 0, L)
-    positions_matrix[:,1] = np.clip(positions_matrix[:,1], 0, H)
-    return positions_matrix
+    current_matrix[:,X] = np.clip(current_matrix[:,X], 0, L)
+    current_matrix[:,Y] = np.clip(current_matrix[:,Y], 0, H)
+    return current_matrix
 
 plt.ion()
 plt.show()
@@ -78,25 +113,26 @@ scatterPoints = None
 # Solving steps
 for step in range(1, STEPS+1):
 
+    # Store current matrix as last matrix
+    last_matrix = np.copy(current_matrix)
+
     # Reset matrix of forces
-    last_forces_matrix = np.copy(forces_matrix)
-    forces_matrix = np.copy(EMPTY_MATRIX)
+    current_matrix[:,FX:FY+1] = np.zeros((N,DIMENSIONS))
 
     # Apply gravity
-    forces_matrix = add_gravity_force(forces_matrix)
-    forces_matrix = add_stoke_air_drag_force(forces_matrix, velocities_matrix)
+    current_matrix = add_gravity_force(current_matrix)
+    current_matrix = add_stoke_air_drag_force(current_matrix)
+    current_matrix = add_contact_forces(current_matrix)
 
     # Calculate velocities from force
-    last_velocities_matrix = np.copy(velocities_matrix)
-    velocities_matrix = calculate_velocities(forces_matrix, last_forces_matrix, last_velocities_matrix)
+    current_matrix = calculate_velocities(current_matrix, last_matrix)
 
     # Calculate position from force and velocity
-    last_positions_matrix = np.copy(positions_matrix)
-    positions_matrix = calculate_positions(last_forces_matrix, last_positions_matrix, last_velocities_matrix)
+    current_matrix = calculate_positions(current_matrix, last_matrix)
 
     # Draw animation frame
     if scatterPoints:
         scatterPoints.remove()
-    scatterPoints = plt.scatter(positions_matrix[:,0], positions_matrix[:,1], s=500)
+    scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=500)
     plt.draw()
     plt.pause(1.0E-10)
