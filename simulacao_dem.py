@@ -8,9 +8,11 @@ from numba import jit
 
 print 'Starting...'
 
+# Reproduce random results for debugging
+np.random.seed(1)
+
 # Flags
 plot = True
-
 
 # Physical and math constants
 G = 9.81 # gravity
@@ -19,7 +21,7 @@ INFINITY = np.inf
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 10000 # Number of grains
+N = 1000 # Number of grains
 #RADIUS = 1.5E-4 # Radius of each grain --- (m)
 RADIUS = 1.5E-4 # Radius of each grain --- (m)
 MASS= 7.63E-8 # Mass of each grain --- (kg)
@@ -40,7 +42,7 @@ L = 4.E-3 # dye length (in m)
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 TF = 0.5 # End time --- (s)
-STEPS = 264000 # Number of steps --- (integer)
+STEPS = 5 # Number of steps --- (integer)
 #STEPS = 20 # Number of steps --- (integer)
 DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
 print "DT: ", DT
@@ -81,67 +83,7 @@ def find_first_item_greater_than(vec, item):
             return i
     return -1
 
-def calculate_contact_forces(other_particle, current_particle):
-    #global total3
-    #start3 = time.time()
-    # Distance between particles
-    contact_forces = np.zeros(2)
-    distance = ((current_particle[X]-other_particle[X])**2. + (current_particle[Y]-other_particle[Y])**2.)**0.5
-    # Fix division by zero
-    if distance == 0:
-        distance = 1e-20
-    radial_unitary_vector = (other_particle[X:Y+1] - current_particle[X:Y+1])/distance
-    # There is contact forces only if particles are closer than the sum of their radii
-    if distance <= 2.*RADIUS:
-
-        # Repulsion force
-        contact_forces += 2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * distance**(3./2.) * radial_unitary_vector
-
-        # Cohesion force is null for the single sphere case, because w is 0
-        #contact_forces += - (4 * PI * w * E_TILDE)**0.5 * EFFECTIVE_RADIUS**(3./4.) * distance**(3./4.) * radial_unitary_vector
-
-        # Damping force
-        contact_forces += - GAMMA_R * RADIUS * (EFFECTIVE_RADIUS * distance)**0.5 * np.dot( (other_particle[VX:VY+1] - current_particle[VX:VY+1]), radial_unitary_vector ) * radial_unitary_vector
-
-    #total3 += time.time() - start3
-    return contact_forces
-
-def region_of_contact_forces(current_matrix, current_particle_index, max_neighbour_index):
-    global total2
-    # Particles i through max_neighbour_index are the ones which may interact (based solely on X distance)
-    region_of_interest = current_matrix[current_particle_index+1:max_neighbour_index+1, :]
-    # Now we remove those particles which Y position is greater than radius
-    possible_interactions = np.less_equal(region_of_interest[:,X], current_matrix[current_particle_index, X] + RADIUS)
-    subregion_of_interest = region_of_interest[possible_interactions, :]
-    if subregion_of_interest.size > 0:
-        start2 = time.time()
-        # TODO: Try to convert this to a vectorized operation
-        #contact_forces = np.apply_along_axis(calculate_contact_forces, 1, subregion_of_interest, current_matrix[current_particle_index,:])
-        distances = np.sqrt(np.square(subregion_of_interest[:,X] - current_matrix[current_particle_index,X]) + np.square(subregion_of_interest[:,Y] - current_matrix[current_particle_index, Y]))
-        reshaped_current_particle = np.tile(current_matrix[current_particle_index, :], (subregion_of_interest[:, X].size, 1))
-        reshaped_distances = np.tile(distances, (2, 1)).transpose()
-        radial_unitary_vector = (subregion_of_interest[:, X:Y+1] - reshaped_current_particle[:, X:Y+1]) / reshaped_distances
-        #contact_forces = - GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * reshaped_distances) * np.dot( (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector.transpose() ) * radial_unitary_vector
-
-        # TODO FIX DOT PRODUCT
-        print np.dot( (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector.transpose() ).shape
-        print (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]).shape
-        print radial_unitary_vector.transpose().shape
-        print contact_forces.shape
-        #print contact_forces
-        total2 += time.time() - start2
-        print total2
-        exit()
-        region_of_interest[possible_interactions,FX:FY+1] += contact_forces 
-        current_matrix[current_particle_index, FX:FY+1] += -contact_forces.sum(axis=0)
-    return current_matrix
-
 def add_contact_forces(current_matrix):
-    global total2
-    global total3
-    total2 = 0
-    total3 = 0
-    start1 = time.time()
     # Now we iterate over every particle, only accounting other particles which y_i - y_j <= RADIUS
     # Last particle shouldn't interact with any other. It already interacted with the previous ones.
     for i in range (0, N-1):
@@ -151,9 +93,28 @@ def add_contact_forces(current_matrix):
         max_neighbour_index = i + max_neighbour_offset
         if max_neighbour_offset == 0:
             max_neighbour_index = current_matrix[:, Y].size-1
-        current_matrix = region_of_contact_forces(current_matrix, i, max_neighbour_index)
-    total1 = time.time() - start1
-    print total2/total1
+
+        # Particles i through max_neighbour_index are the ones which may interact (based solely on X distance)
+        region_of_interest = current_matrix[i+1:max_neighbour_index+1, :]
+        # Now we remove those particles which Y position is greater than radius
+        possible_interactions = np.less_equal(region_of_interest[:,X], current_matrix[i, X] + RADIUS)
+        subregion_of_interest = region_of_interest[possible_interactions, :]
+
+        if subregion_of_interest.size > 0:
+
+            distances = np.sqrt(np.square(subregion_of_interest[:,X] - current_matrix[i,X]) + np.square(subregion_of_interest[:,Y] - current_matrix[i, Y]))
+
+            reshaped_current_particle = np.tile(current_matrix[i, :], (subregion_of_interest[:, X].size, 1))
+            reshaped_distances = np.tile(distances, (2, 1)).transpose() + 1E-20
+            radial_unitary_vector = (subregion_of_interest[:, X:Y+1] - reshaped_current_particle[:, X:Y+1]) / reshaped_distances
+            reshaped_distances = reshaped_distances * np.greater(2*RADIUS - reshaped_distances, 0)
+
+            contact_forces = 2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * reshaped_distances**(3./2.) * radial_unitary_vector
+            contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * reshaped_distances).transpose() * np.einsum( 'ij, ij->i', (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
+
+            region_of_interest[possible_interactions,FX:FY+1] += contact_forces 
+            current_matrix[i, FX:FY+1] += -contact_forces.sum(axis=0)
+
     return current_matrix
 
 # Initializing matplotlib scatter plot data
@@ -202,5 +163,7 @@ for step in range(1, STEPS+1):
         plt.pause(1.0E-10)
     
     print 'Step ', str(step), ' done.'
+
+print current_matrix
 
 print 'Finished.'
