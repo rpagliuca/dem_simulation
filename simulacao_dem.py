@@ -42,8 +42,7 @@ L = 4.E-3 # dye length (in m)
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 TF = 0.5 # End time --- (s)
-STEPS = 5 # Number of steps --- (integer)
-#STEPS = 20 # Number of steps --- (integer)
+STEPS = 260000 # Number of steps --- (integer)
 DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
 print "DT: ", DT
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
@@ -100,20 +99,24 @@ def add_contact_forces(current_matrix):
         possible_interactions = np.less_equal(region_of_interest[:,X], current_matrix[i, X] + RADIUS)
         subregion_of_interest = region_of_interest[possible_interactions, :]
 
+        # If there is any possible neighbour
         if subregion_of_interest.size > 0:
 
+            # Get distance of possible neighbours
             distances = np.sqrt(np.square(subregion_of_interest[:,X] - current_matrix[i,X]) + np.square(subregion_of_interest[:,Y] - current_matrix[i, Y]))
 
-            reshaped_current_particle = np.tile(current_matrix[i, :], (subregion_of_interest[:, X].size, 1))
-            reshaped_distances = np.tile(distances, (2, 1)).transpose() + 1E-20
-            radial_unitary_vector = (subregion_of_interest[:, X:Y+1] - reshaped_current_particle[:, X:Y+1]) / reshaped_distances
-            reshaped_distances = reshaped_distances * np.greater(2*RADIUS - reshaped_distances, 0)
+            # Generate unitary vector
+            radial_unitary_vector = ((subregion_of_interest[:, X:Y+1] - current_matrix[i, X:Y+1]).transpose() / (distances.transpose() + 1E-20)).transpose()
 
-            contact_forces = 2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * reshaped_distances**(3./2.) * radial_unitary_vector
-            contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * reshaped_distances).transpose() * np.einsum( 'ij, ij->i', (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
+            # Discard distances greater than 2*RADIUS
+            distances = distances * np.greater(2*RADIUS - distances, 0)
 
+            # Add contact forces
+            contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * distances**(3./2.) * radial_unitary_vector.transpose()).transpose()
+            contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * distances).transpose() * np.einsum( 'ij, ij->i', (subregion_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
             region_of_interest[possible_interactions,FX:FY+1] += contact_forces 
-            current_matrix[i, FX:FY+1] += -contact_forces.sum(axis=0)
+            # Add forces and apply its negative value to current particle (Newton's Second Law of motion)
+            current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces)
 
     return current_matrix
 
