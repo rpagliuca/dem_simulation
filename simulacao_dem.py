@@ -21,13 +21,13 @@ INFINITY = np.inf
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 1000 # Number of grains
+N = 20000 # Number of grains
 #RADIUS = 1.5E-4 # Radius of each grain --- (m)
 RADIUS = 1.5E-4 # Radius of each grain --- (m)
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
-E_TILDE = 10.0E7 # Young's modulus / (1 - nu^2) --- (Pa)
+E_TILDE = 1.0E9 # Young's modulus / (1 - nu^2) --- (Pa)
 GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
 KAPPA_R = 1.0E6 # Kappa / R --- (Pa)
 MU_W = 0.15 # --- (dimensionless)
@@ -42,7 +42,8 @@ L = 4.E-3 # dye length (in m)
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 TF = 0.5 # End time --- (s)
-STEPS = 260000 # Number of steps --- (integer)
+STEPS = 100 # Number of steps --- (integer)
+#STEPS = 5 # Number of steps --- (integer)
 DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
 print "DT: ", DT
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
@@ -51,7 +52,7 @@ DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 GRAVITAL_FORCE = MASS*G
 EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
 
-# Constants to be used with the data matrices
+# Constants to be used as columns on the data matrices
 X = 0
 Y = 1
 VX = 2
@@ -82,7 +83,7 @@ def find_first_item_greater_than(vec, item):
             return i
     return -1
 
-def add_contact_forces(current_matrix):
+def apply_forces(current_matrix):
     # Now we iterate over every particle, only accounting other particles which y_i - y_j <= RADIUS
     # Last particle shouldn't interact with any other. It already interacted with the previous ones.
     for i in range (0, N-1):
@@ -94,29 +95,46 @@ def add_contact_forces(current_matrix):
             max_neighbour_index = current_matrix[:, Y].size-1
 
         # Particles i through max_neighbour_index are the ones which may interact (based solely on X distance)
-        region_of_interest = current_matrix[i+1:max_neighbour_index+1, :]
+        column_of_interest = current_matrix[i+1:max_neighbour_index+1, :]
         # Now we remove those particles which Y position is greater than radius
-        possible_interactions = np.less_equal(region_of_interest[:,X], current_matrix[i, X] + RADIUS)
-        subregion_of_interest = region_of_interest[possible_interactions, :]
+        possible_interactions = np.less_equal(column_of_interest[:,X], current_matrix[i, X] + RADIUS)
+        cell_of_interest = column_of_interest[possible_interactions, :]
 
         # If there is any possible neighbour
-        if subregion_of_interest.size > 0:
+        if cell_of_interest.size > 0:
 
             # Get distance of possible neighbours
-            distances = np.sqrt(np.square(subregion_of_interest[:,X] - current_matrix[i,X]) + np.square(subregion_of_interest[:,Y] - current_matrix[i, Y]))
+            distances = np.sqrt(np.square(cell_of_interest[:,X] - current_matrix[i,X]) + np.square(cell_of_interest[:,Y] - current_matrix[i, Y]))
 
             # Generate unitary vector
-            radial_unitary_vector = ((subregion_of_interest[:, X:Y+1] - current_matrix[i, X:Y+1]).transpose() / (distances.transpose() + 1E-20)).transpose()
+            radial_unitary_vector = ((cell_of_interest[:, X:Y+1] - current_matrix[i, X:Y+1]).transpose() / (distances.transpose() + 1E-20)).transpose()
 
             # Discard distances greater than 2*RADIUS
-            distances = distances * np.greater(2*RADIUS - distances, 0)
+            deformations = (2*RADIUS - distances).clip(min=0)
 
             # Add contact forces
-            contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * distances**(3./2.) * radial_unitary_vector.transpose()).transpose()
-            contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * distances).transpose() * np.einsum( 'ij, ij->i', (subregion_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
-            region_of_interest[possible_interactions,FX:FY+1] += contact_forces 
-            # Add forces and apply its negative value to current particle (Newton's Second Law of motion)
-            current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces)
+
+            # 1. Repulsion force
+            contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
+
+            # 2. Attraction (cohesion)
+            # Non-existent for single spheres
+
+            # 3. Viscous dissipation
+            contact_forces += -(GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
+
+            # 4. Friction force
+            # To be modelled
+
+            # Write contact_forces to column_of_interest view based on possible_interactions items (indeces)
+            column_of_interest[possible_interactions,FX:FY+1] += contact_forces 
+
+            # Add forces and apply its negative sum to current particle (Newton's Second Law of motion)
+            current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces) 
+
+    # Apply gravity and Stoke's air drag 
+    current_matrix[:, FX:FY+1] = -6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + GRAVITAL_FORCE * np.array((0, -1))
+    #current_matrix[:, FX:FY+1] = GRAVITAL_FORCE * np.array((0, -1))
 
     return current_matrix
 
@@ -131,9 +149,12 @@ print 'Initializing steps...'
 
 # Solving steps
 for step in range(1, STEPS+1):
+    print 'Beggining step ', str(step), '...'
 
     # First, we sort by x position to optimize contact forces
+    print 'Sorting matrix...'
     current_matrix = current_matrix[current_matrix[:,X].argsort()]
+    print 'Done sorting matrix.'
 
     # Store current matrix as last matrix
     last_matrix = np.copy(current_matrix)
@@ -141,18 +162,17 @@ for step in range(1, STEPS+1):
     # Reset matrix of forces
     current_matrix[:,FX:FY+1] = np.zeros((N,DIMENSIONS))
 
-    # Apply gravity
-    current_matrix[:,FY] =- GRAVITAL_FORCE
-    # Apply stoke air drag 
-    current_matrix[:, FX:FY+1] = current_matrix[:, FX:FY+1] - 6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1]
-    # Apply contact forces
-    current_matrix = add_contact_forces(current_matrix)
+    # Apply forces
+    print 'Applying forces...'
+    current_matrix = apply_forces(current_matrix)
+    print 'Done applying forces.'
 
     # Calculate velocities from force
     current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + (current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1])/(2*MASS) * DT
 
     # Calculate position from force and velocity
     current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + last_matrix[:,FX:FY+1]/(2*MASS) * DT**2
+
     # Boundary conditions
     current_matrix[:,X] = np.clip(current_matrix[:,X], 0, L)
     current_matrix[:,Y] = np.clip(current_matrix[:,Y], 0, H)
@@ -165,8 +185,6 @@ for step in range(1, STEPS+1):
         plt.draw()
         plt.pause(1.0E-10)
     
-    print 'Step ', str(step), ' done.'
-
-print current_matrix
+    print 'Done step ', str(step), '.'
 
 print 'Finished.'
