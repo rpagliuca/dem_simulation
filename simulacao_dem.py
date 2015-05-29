@@ -17,17 +17,16 @@ plot = True
 # Physical and math constants
 G = 9.81 # gravity
 PI = np.pi
-INFINITY = np.inf
+INFINITY = 1.0E50
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 20000 # Number of grains
-#RADIUS = 1.5E-4 # Radius of each grain --- (m)
-RADIUS = 1.5E-4 # Radius of each grain --- (m)
+N = 2000 # Number of grains
+RADIUS = 1.5E-3 # Radius of each grain --- (m)
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
-E_TILDE = 1.0E9 # Young's modulus / (1 - nu^2) --- (Pa)
+E_TILDE = 1.0E20 # Young's modulus / (1 - nu^2) --- (Pa)
 GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
 KAPPA_R = 1.0E6 # Kappa / R --- (Pa)
 MU_W = 0.15 # --- (dimensionless)
@@ -36,39 +35,71 @@ MU_W = 0.15 # --- (dimensionless)
 WALL_MASS = INFINITY
 
 # Dye geometry
-H = 10.E-3 # dye height (in m)
-L = 4.E-3 # dye length (in m)
+H = 10.E-2 # dye height (in m)
+L = 4.E-2 # dye length (in m)
+
+# Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
+NUMBER_PARTICLES_BOTTOM_WALL = np.round(L/(RADIUS*1.6))
+NUMBER_PARTICLES_SIDE_WALLS = np.round(H/(RADIUS*1.6))
 
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 TF = 0.5 # End time --- (s)
-STEPS = 100 # Number of steps --- (integer)
+STEPS = 200 # Number of steps --- (integer)
 #STEPS = 5 # Number of steps --- (integer)
 DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
 print "DT: ", DT
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 
 # Derivative constants
-GRAVITAL_FORCE = MASS*G
 EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
 
 # Constants to be used as columns on the data matrices
-X = 0
-Y = 1
-VX = 2
-VY = 3
-FX = 4
-FY = 5
+X = 0 # Positon on x
+Y = 1 # Position on y
+VX = 2 # Velocity x-component
+VY = 3 # Velocity y-component
+FX = 4 # Force x-component
+FY = 5 # Force y-component
+M = 6 # Mass
+T = 7 # Type (particle -> 1, wall -> 0)
 
 print 'Initializing matrices...'
 
 # Initializing matrices
-EMPTY_MATRIX = np.zeros((N, DIMENSIONS*3.)) # Each matrix has 2 dimensions x 3 types of values (X, Y, VX, VY, FX, FY)
+EMPTY_MATRIX = np.zeros((N, DIMENSIONS*3. + 2.)) # Each matrix has 2 dimensions x 3 types of values (X, Y, VX, VY, FX, FY) plus additional columns: Mass
 current_matrix = np.copy(EMPTY_MATRIX)
 last_matrix = np.copy(EMPTY_MATRIX)
-current_matrix[:,X:Y+1] = np.random.random_sample((N, DIMENSIONS))
+current_matrix[:,M] = MASS
+current_matrix[:,T] = 1
+
+# Particles positions
 current_matrix[:,X] = np.random.random_sample(N)*L
 current_matrix[:,Y] = np.random.random_sample(N)*H
+
+# Now we'll turn some of the particles into wall particles
+# Bottom wall
+offset = 0
+current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, Y] = 0
+current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, X] = np.linspace(0, L, num=NUMBER_PARTICLES_BOTTOM_WALL)
+print NUMBER_PARTICLES_BOTTOM_WALL
+current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, M] = WALL_MASS
+
+# Left wall
+offset = offset+NUMBER_PARTICLES_BOTTOM_WALL
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, X] = 0
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, Y] = np.linspace(0, H, num=NUMBER_PARTICLES_SIDE_WALLS)
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, M] = WALL_MASS
+
+# Right wall
+offset = offset+NUMBER_PARTICLES_SIDE_WALLS
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, X] = L
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, Y] = np.linspace(0, H, num=NUMBER_PARTICLES_SIDE_WALLS)
+current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, M] = WALL_MASS
+
+# Flag particles as type 0 (wall particle)
+offset = offset+NUMBER_PARTICLES_SIDE_WALLS
+current_matrix[0:offset, T] = 0
 
 print 'Done!'
 
@@ -133,8 +164,7 @@ def apply_forces(current_matrix):
             current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces) 
 
     # Apply gravity and Stoke's air drag 
-    current_matrix[:, FX:FY+1] = -6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + GRAVITAL_FORCE * np.array((0, -1))
-    #current_matrix[:, FX:FY+1] = GRAVITAL_FORCE * np.array((0, -1))
+    current_matrix[:, FX:FY+1] = ((-6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + (np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
 
     return current_matrix
 
@@ -143,7 +173,8 @@ if plot:
     scatterPoints = None
     plt.ion()
     plt.show()
-    plt.axis([0, L, 0, H])
+    plt.axis([0 - L*0.1, L + L*0.1, 0 - H*0.1, H + H*0.1])
+    plt.axes().set_aspect('equal')
 
 print 'Initializing steps...'
 
@@ -168,23 +199,21 @@ for step in range(1, STEPS+1):
     print 'Done applying forces.'
 
     # Calculate velocities from force
-    current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + (current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1])/(2*MASS) * DT
+    current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + ((current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1]).transpose()/(2*current_matrix[:,M])).transpose() * DT
 
     # Calculate position from force and velocity
-    current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + last_matrix[:,FX:FY+1]/(2*MASS) * DT**2
-
-    # Boundary conditions
-    current_matrix[:,X] = np.clip(current_matrix[:,X], 0, L)
-    current_matrix[:,Y] = np.clip(current_matrix[:,Y], 0, H)
+    current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
 
     # Draw animation frame
     if plot:
         if scatterPoints:
             scatterPoints.remove()
-        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=50)
+        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=40, lw=0)
         plt.draw()
         plt.pause(1.0E-10)
     
     print 'Done step ', str(step), '.'
+
+print current_matrix
 
 print 'Finished.'
