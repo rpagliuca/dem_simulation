@@ -19,7 +19,7 @@ INFINITY = np.inf
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 1200 # Number of grains
+N = 10000 # Number of grains
 #RADIUS = 1.5E-4 # Radius of each grain --- (m)
 RADIUS = 1.5E-4 # Radius of each grain --- (m)
 MASS= 7.63E-8 # Mass of each grain --- (kg)
@@ -116,8 +116,22 @@ def region_of_contact_forces(current_matrix, current_particle_index, max_neighbo
     if subregion_of_interest.size > 0:
         start2 = time.time()
         # TODO: Try to convert this to a vectorized operation
-        contact_forces = np.apply_along_axis(calculate_contact_forces, 1, subregion_of_interest, current_matrix[current_particle_index,:])
+        #contact_forces = np.apply_along_axis(calculate_contact_forces, 1, subregion_of_interest, current_matrix[current_particle_index,:])
+        distances = np.sqrt(np.square(subregion_of_interest[:,X] - current_matrix[current_particle_index,X]) + np.square(subregion_of_interest[:,Y] - current_matrix[current_particle_index, Y]))
+        reshaped_current_particle = np.tile(current_matrix[current_particle_index, :], (subregion_of_interest[:, X].size, 1))
+        reshaped_distances = np.tile(distances, (2, 1)).transpose()
+        radial_unitary_vector = (subregion_of_interest[:, X:Y+1] - reshaped_current_particle[:, X:Y+1]) / reshaped_distances
+        #contact_forces = - GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * reshaped_distances) * np.dot( (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector.transpose() ) * radial_unitary_vector
+
+        # TODO FIX DOT PRODUCT
+        print np.dot( (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]) , radial_unitary_vector.transpose() ).shape
+        print (subregion_of_interest[:, VX:VY+1] - reshaped_current_particle[:, VX:VY+1]).shape
+        print radial_unitary_vector.transpose().shape
+        print contact_forces.shape
+        #print contact_forces
         total2 += time.time() - start2
+        print total2
+        exit()
         region_of_interest[possible_interactions,FX:FY+1] += contact_forces 
         current_matrix[current_particle_index, FX:FY+1] += -contact_forces.sum(axis=0)
     return current_matrix
