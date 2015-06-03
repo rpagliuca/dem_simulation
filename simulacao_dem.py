@@ -6,13 +6,16 @@ import matplotlib.pyplot as plt
 import time
 from numba import jit
 
-print 'Starting...'
-
 # Reproduce random results for debugging
-np.random.seed(3)
+np.random.seed(6)
 
 # Flags
-plot = True
+realtimePlot = False
+log = False
+stepPlotFlag = False
+
+if log:
+    print 'Starting...'
 
 # Physical and math constants
 G = 9.81 # gravity
@@ -21,10 +24,13 @@ INFINITY = 1.0E50
 
 # Dye dimensions
 H = 10.E-2 # dye height (in m)
-L = 4.E-2 # dye length (in m)
+# Multiplicator for random generation
+H_MULTIPLICATOR = 8
+#L = 4.E-2 # dye length (in m)
+L = H # dye length (in m)
 
 # Particle size
-RADIUS = 1.E-3 # Radius of each grain --- (m)
+RADIUS = 5.E-3 # Radius of each grain --- (m)
 #RADIUS = 1.5E-4 # Radius of each grain --- (m)
 
 # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
@@ -33,7 +39,7 @@ NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 10
+N = 200 
 N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
@@ -49,10 +55,11 @@ WALL_MASS = INFINITY
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 TF = 1. # End time --- (s)
-STEPS = 2000 # Number of steps --- (integer)
+STEPS = 10000 # Number of steps --- (integer)
 #STEPS = 5 # Number of steps --- (integer)
 DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
-print "DT: ", DT
+if log:
+    print "DT: ", DT
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 
 # Derivative constants
@@ -68,7 +75,8 @@ FY = 5 # Force y-component
 M = 6 # Mass
 T = 7 # Type (particle -> 1, wall -> 0)
 
-print 'Initializing matrices...'
+if log:
+    print 'Initializing matrices...'
 
 # Initializing matrices
 EMPTY_MATRIX = np.zeros((N, DIMENSIONS*3. + 2.)) # Each matrix has 2 dimensions x 3 types of values (X, Y, VX, VY, FX, FY) plus additional columns: Mass
@@ -79,14 +87,15 @@ current_matrix[:,T] = 1
 
 # Particles positions
 current_matrix[:,X] = np.random.random_sample(N)*L
-current_matrix[:,Y] = np.random.random_sample(N)*H*2
+current_matrix[:,Y] = np.random.random_sample(N)*H*H_MULTIPLICATOR
 
 # Now we'll turn some of the particles into wall particles
 # Bottom wall
 offset = 0
 current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, Y] = 0
 current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, X] = np.linspace(0, L, num=NUMBER_PARTICLES_BOTTOM_WALL)
-print NUMBER_PARTICLES_BOTTOM_WALL
+if log:
+    print NUMBER_PARTICLES_BOTTOM_WALL
 current_matrix[offset:offset+NUMBER_PARTICLES_BOTTOM_WALL, M] = WALL_MASS
 
 # Left wall
@@ -105,16 +114,17 @@ current_matrix[offset:offset+NUMBER_PARTICLES_SIDE_WALLS, M] = WALL_MASS
 offset = offset+NUMBER_PARTICLES_SIDE_WALLS
 current_matrix[0:offset, T] = 0
 
-print 'Done!'
+if log:
+    print 'Done!'
 
 # Dye wall
 
 # Source: http://stackoverflow.com/a/29799815/1501575
 # Pre-compiled function to find first element of array greater than
 @jit(nopython=True)
-def find_first_item_greater_than(vec, item):
+def find_first_item_greater_than(vec, value):
     for i in xrange(len(vec)):
-        if item < vec[i]:
+        if vec[i] > value:
             return i
     return -1
 
@@ -128,18 +138,18 @@ def apply_forces(current_matrix):
         # np.argmax returns the minimum index wich satisfies some arbitrary condition, but it is way slower than using numba pre-compiled functions
         #max_neighbour_offset = np.argmax(current_matrix[i+1:, Y] > current_matrix[i, Y] + 2*RADIUS)
         max_neighbour_offset = find_first_item_greater_than(current_matrix[i+1:, Y], current_matrix[i, Y] + 2*RADIUS)
-        max_neighbour_index = i+1 + max_neighbour_offset - 1
+        max_neighbour_index = i+1 + max_neighbour_offset
 
         if max_neighbour_offset == -1:
             # Skip loop,there is no possible interaction for tihs particle
             continue
 
-        # Particles i through max_neighbour_index are the ones which may interact (based solely on X distance)
-        column_of_interest = current_matrix[i+1:max_neighbour_index+1, :]
+        # Particles i through max_neighbour_index are the ones which may interact (based solely on Y distance)
+        row_of_interest = current_matrix[i+1:max_neighbour_index+1, :]
 
         # Now we remove those particles which Y position is greater than radius
-        possible_interactions = np.less_equal(column_of_interest[:,X], current_matrix[i, X] + 2*RADIUS)
-        cell_of_interest = column_of_interest[possible_interactions, :]
+        possible_interactions = np.less_equal(row_of_interest[:,X], current_matrix[i, X] + 2*RADIUS)
+        cell_of_interest = row_of_interest[possible_interactions, :]
 
         #contact_forces = 0
 
@@ -160,6 +170,7 @@ def apply_forces(current_matrix):
             # Force 1 => Repulsion force
             #contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
             contact_forces = (2*7.48E-7 * 5.0E3 * deformations * radial_unitary_vector.transpose()).transpose()
+            #contact_forces = (2*7.48E-7 * 5.0E0 / (distances + 1.E-20)**2 * deformations * radial_unitary_vector.transpose()).transpose()
 
             # Gravity applies force of approx. 9.81*7.63E-8 => 7.48E-7 NEWTON
             # Repulsion should apply more or less the same ammount (maybe double)
@@ -176,13 +187,13 @@ def apply_forces(current_matrix):
             # I'm not modelling as Cundall, but as Haff and Werner
             relative_velocities = (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1])
             tangent_relative_velocities = relative_velocities - (relative_velocities.transpose() - np.einsum('ij, ij->i', relative_velocities, radial_unitary_vector)).transpose() * radial_unitary_vector
-            tangent_relative_velocities_module = np.sqrt(tangent_relative_velocities[:, 0]**2 + tangent_relative_velocities[:, 1]**2)
+            tangent_relative_velocities_module = np.sqrt(tangent_relative_velocities[:, 0]**2 + tangent_relative_velocities[:, 1]**2) + 1.E-20
             tangent_unitary_vector = (tangent_relative_velocities.transpose() / tangent_relative_velocities_module).transpose()
-            GBPM_GAMMA = 1.E-5
-            contact_forces += - GBPM_GAMMA * tangent_relative_velocities
+            GBPM_GAMMA = 1.E-6
+            contact_forces += - GBPM_GAMMA * (tangent_relative_velocities.transpose() * deformations).transpose()
 
-            # Write contact_forces to column_of_interest view based on possible_interactions items (indeces)
-            column_of_interest[possible_interactions,FX:FY+1] += contact_forces 
+            # Write contact_forces to row_of_interest view based on possible_interactions items (indeces)
+            row_of_interest[possible_interactions,FX:FY+1] += contact_forces 
 
             # Add forces and apply its negative sum to current particle (Newton's Second Law of motion)
             current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces) 
@@ -195,23 +206,39 @@ def apply_forces(current_matrix):
     return current_matrix
 
 # Initializing matplotlib scatter plot data
-if plot:
+stepPlot = False
+lastPlot = False
+if realtimePlot:
     scatterPoints = None
     plt.ion()
     plt.show()
     plt.axis([0 - L*0.05, L + L*0.05, 0 - 2*H*0.05, 2*H + 2*H*0.05])
     plt.axes().set_aspect('equal')
 
-print 'Initializing steps...'
+if log:
+    print 'Initializing steps...'
+
+# Author: dr jimbob
+# Source: http://stackoverflow.com/a/5009578/1501575
+def my_circle_scatter(axes, x_array, y_array, radius=0.5, **kwargs):
+    for x, y in zip(x_array, y_array):
+        circle = pylab.Circle((x,y), radius=radius, **kwargs)
+        axes.add_patch(circle)
+    return True
 
 # Solving steps
 for step in range(1, STEPS+1):
-    print 'Beggining step ', str(step), '...'
+    if log:
+        print 'Beggining step ', str(step), '...'
 
-    # First, we sort by x position to optimize contact forces
-    print 'Sorting matrix...'
-    current_matrix = current_matrix[current_matrix[:,X].argsort()]
-    print 'Done sorting matrix.'
+    # First, we sort by y position to optimize contact forces
+    if log:
+        print 'Sorting matrix...'
+
+    current_matrix = current_matrix[current_matrix[:,Y].argsort()]
+
+    if log:
+        print 'Done sorting matrix.'
 
     # Store current matrix as last matrix
     last_matrix = np.copy(current_matrix)
@@ -220,28 +247,54 @@ for step in range(1, STEPS+1):
     current_matrix[:,FX:FY+1] = np.zeros((N,DIMENSIONS))
 
     # Apply forces
-    print 'Applying forces...'
-    current_matrix = apply_forces(current_matrix)
-    print 'Done applying forces.'
+    if log:
+        print 'Applying forces...'
 
-    #print current_matrix[:,FX:T+1]
+    current_matrix = apply_forces(current_matrix)
+
+    if log:
+        print 'Done applying forces.'
+
 
     # Calculate velocities from force
-    current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + ((current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1]).transpose()/(2*current_matrix[:,M])).transpose() * DT
+    current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + ((current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1]).transpose()*current_matrix[:,T]/(2*current_matrix[:,M])).transpose() * DT
+
+    #print current_matrix[:,VX:T+1]
 
     # Calculate position from force and velocity
-    current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
+    #current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
+    current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + current_matrix[:,VX:VY+1]*DT + (current_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
 
     # Draw animation frame
-    if plot:
+    if step == STEPS:
+        lastPlot = True
+    if stepPlotFlag and (step == STEPS or step == np.round(STEPS/2) or step == np.round(STEPS/4)):
+        stepPlot = True
+    if not realtimePlot and (stepPlot or lastPlot):
+        scatterPoints = None
+        plt.ion()
+        plt.show()
+        plt.axis([0 - L*0.05, L + L*0.05, 0 - 2*H*0.05, 2*H + 2*H*0.05])
+        plt.axes().set_aspect('equal')
+        realtimePlot = True
+
+    if realtimePlot:
         if scatterPoints:
             scatterPoints.remove()
-        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=70, lw=0)
-        plt.draw()
-        plt.pause(1.0E-10)
-    
-    print 'Done step ', str(step), '.'
+        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=900, facecolors='none')
+        if stepPlot or lastPlot:
+            plt.ioff()
+            plt.show()
+        else:
+            plt.draw()
+            plt.pause(1.0E-10)
 
-print current_matrix
+    if stepPlot:
+        realtimePlot = False
+        stepPlot = False
 
-print 'Finished.'
+    print 'Done step ', str(step), '.' 
+
+if log:
+    print current_matrix
+    print 'Finished.'
