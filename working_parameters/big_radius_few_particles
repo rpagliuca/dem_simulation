@@ -1,0 +1,36 @@
+# Reproduce random results for debugging
+np.random.seed(7)
+# Physical and math constants
+G = 9.81 # gravity
+PI = np.pi
+INFINITY = 1.0E50
+# Dye dimensions
+H = 10.E-2 # dye height (in m)
+# Multiplicator for random generation
+H_MULTIPLICATOR = 3
+#L = 4.E-2 # dye length (in m)
+L = H # dye length (in m)
+# Particle size
+RADIUS = 5.E-3 # Radius of each grain --- (m)
+# Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
+NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(L/(RADIUS*1.6))
+NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
+# Simulation parameters taken from BIRWISCH et al., 2009
+# Material
+N = 20 
+N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
+MASS= 7.63E-8 # Mass of each grain --- (kg)
+MU = 0.5 # Drag coefficient --- (dimensionless)
+MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
+E_TILDE = 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
+KAPPA_R = 1.0E6 # Kappa / R --- (Pa)
+MU_W = 0.15 # --- (dimensionless)
+# Material of wall
+WALL_MASS = INFINITY
+# Misc parameters
+T0 = 0. # Initial time --- (s)
+TF = 1. # End time --- (s)
+STEPS = 1000 # Number of steps --- (integer)
+#STEPS = 5 # Number of steps --- (integer)
+DT = (TF-T0)/STEPS # Timestep between iterations --- (s)

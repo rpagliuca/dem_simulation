@@ -7,7 +7,7 @@ import time
 from numba import jit
 
 # Reproduce random results for debugging
-np.random.seed(1)
+np.random.seed(4)
 
 # Flags
 realtimePlot = True
@@ -23,14 +23,14 @@ PI = np.pi
 INFINITY = 1.0E50
 
 # Dye dimensions
-H = 5.E-2 # dye height (in m)
+H = 10.E-2 # dye height (in m)
 # Multiplicator for random generation
-H_MULTIPLICATOR = 2.
+H_MULTIPLICATOR = 2 
 #L = 4.E-2 # dye length (in m)
 L = H # dye length (in m)
 
 # Particle size
-RADIUS = 5.E-4 # Radius of each grain --- (m)
+RADIUS = 5.E-3 # Radius of each grain --- (m)
 #RADIUS = 1.5E-4 # Radius of each grain --- (m)
 
 # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
@@ -39,7 +39,7 @@ NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 1000
+N = 10
 N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
@@ -55,12 +55,11 @@ WALL_MASS = INFINITY
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 #TF = 3. # End time --- (s)
-STEPS = 10000 # Number of steps --- (integer)
+STEPS = 2000 # Number of steps --- (integer)
 #STEPS = 5 # Number of steps --- (integer)
 #DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
-DT = 1.E-4
+DT = 1.E-3
 TF = T0 + STEPS*DT
-print TF
 if log:
     print "DT: ", DT
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
@@ -89,8 +88,8 @@ current_matrix[:,M] = MASS
 current_matrix[:,T] = 1
 
 # Particles positions
-current_matrix[:,X] = 2.0*RADIUS + np.random.random_sample(N)*(L - 4.0*RADIUS)
-current_matrix[:,Y] = 2.0*RADIUS + np.random.random_sample(N)*(H - 4.0*RADIUS) * H_MULTIPLICATOR
+current_matrix[:,X] = np.random.random_sample(N)*L
+current_matrix[:,Y] = np.random.random_sample(N)*H*H_MULTIPLICATOR
 
 # Now we'll turn some of the particles into wall particles
 # Bottom wall
@@ -172,7 +171,7 @@ def apply_forces(current_matrix):
 
             # Force 1 => Repulsion force
             #contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
-            contact_forces = (2*7.48E-7 * 1.0E5 * deformations * radial_unitary_vector.transpose()).transpose()
+            contact_forces = (2*7.48E-7 * 5.0E3 * deformations * radial_unitary_vector.transpose()).transpose()
             #contact_forces = (2*7.48E-7 * 5.0E0 / (distances + 1.E-20)**2 * deformations * radial_unitary_vector.transpose()).transpose()
 
             # Gravity applies force of approx. 9.81*7.63E-8 => 7.48E-7 NEWTON
@@ -183,7 +182,7 @@ def apply_forces(current_matrix):
 
             # Force 3 => Viscous dissipation
             #contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
-            contact_forces += - 1E-3 * (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
+            contact_forces += - 1E-5 * (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
 
             # Force 4 => Friction force
             # To be modelled
@@ -284,7 +283,7 @@ for step in range(1, STEPS+1):
     if realtimePlot:
         if scatterPoints:
             scatterPoints.remove()
-        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=20, facecolors='none')
+        scatterPoints = plt.scatter(current_matrix[:, X], current_matrix[:,Y], s=900, facecolors='none')
         if stepPlot or lastPlot:
             plt.ioff()
             plt.show()
