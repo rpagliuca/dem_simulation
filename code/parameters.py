@@ -37,7 +37,7 @@ NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 500
+N = 2
 N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)

@@ -48,19 +48,16 @@ def apply_forces(current_matrix):
             # Add contact forces
 
             # Force 1 => Repulsion force
-            #contact_forces = (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
+            contact_forces = 1.0E32 * (2./3. * E_TILDE * EFFECTIVE_RADIUS**0.5 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
             #contact_forces = (2.*7.48E-7 * 2.0E6 * deformations**(3./2.) * radial_unitary_vector.transpose()).transpose()
-            contact_forces = (2.*7.48E-7 * 5.0E-2 / (distances + 1.E-20)**2 * deformations * radial_unitary_vector.transpose()).transpose()
-
-            # Gravity applies force of approx. 9.81*7.63E-8 => 7.48E-7 NEWTON
-            # Repulsion should apply more or less the same ammount (maybe double)
+            #contact_forces = (2.*7.48E-7 * 5.0E-2 / (distances + 1.E-20)**2 * deformations * radial_unitary_vector.transpose()).transpose()
 
             # Force 2 => Attraction (cohesion)
             # Non-existent for single spheres
 
             # Force 3 => Viscous dissipation
             #contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
-            contact_forces += - 2.0E-5 * (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
+            #contact_forces += - 2.0E-5 * (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
 
             # Force 4 => Friction force
             # To be modelled
