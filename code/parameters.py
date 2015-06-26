@@ -37,15 +37,21 @@ NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 2
+N = 10 
 N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
-E_TILDE = 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
-GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
 KAPPA_R = 1.0E6 # Kappa / R --- (Pa)
 MU_W = 0.15 # --- (dimensionless)
+
+# Repulsion parameters
+#E_TILDE = 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+E_TILDE = 1.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+#E_TILDE = 0.
+
+# Viscous parameter
+GAMMA_R = 1.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
 
 # Material of wall
 WALL_MASS = INFINITY
@@ -72,3 +78,4 @@ FX = 4 # Force x-component
 FY = 5 # Force y-component
 M = 6 # Mass
 T = 7 # Type (particle -> 1, wall -> 0)
+WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)

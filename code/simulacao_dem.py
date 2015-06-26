@@ -7,5 +7,5 @@ import time
 
 from parameters import *
 from matrix_initialization import *
-from functions import *
+from forces import *
 from main_loop import *

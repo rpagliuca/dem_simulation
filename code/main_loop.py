@@ -1,6 +1,6 @@
 from parameters import *
 from matrix_initialization import *
-from functions import *
+from forces import *
 
 # Initializing matplotlib scatter plot data
 stepPlot = False
@@ -9,11 +9,15 @@ if realtimePlot:
     scatterPoints = None
     plt.ion()
     plt.show()
-    plt.axis([0 - L*0.05, L + L*0.05, 0 - 2*H*0.05, 2*H + 2*H*0.05])
+    plt.axis([0 - L*0.05, 2*L + L*0.05, 0 - 2*H*0.05, 2*H + 2*H*0.05])
     plt.axes().set_aspect('equal')
 
 # Solving steps
 for step in range(1, STEPS+1):
+
+    # Move shoe horizontally
+    #current_matrix[:,X] = current_matrix[:,X]+5.0*L/STEPS * (abs(current_matrix[:,T]-1))
+    current_matrix[current_matrix[:,WT] == 2, X] = current_matrix[current_matrix[:,WT] == 2, X] + 5.0*L/STEPS
 
     # First, we sort by y position to optimize contact forces
     current_matrix = current_matrix[current_matrix[:,Y].argsort()]
