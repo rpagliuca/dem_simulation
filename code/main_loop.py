@@ -9,7 +9,7 @@ if realtimePlot:
     scatterPoints = None
     plt.ion()
     plt.show()
-    plt.axis([0 - L*0.05, 2*L + L*0.05, 0 - 2*H*0.05, 2*H + 2*H*0.05])
+    plt.axis([0 - SL*0.05, 2*SL + SL*0.05, -DH - 2*(DH+SH)*0.05, 2*SH + 2*SH*0.05])
     plt.axes().set_aspect('equal')
 
 # Solving steps
@@ -17,7 +17,7 @@ for step in range(1, STEPS+1):
 
     # Move shoe horizontally
     #current_matrix[:,X] = current_matrix[:,X]+5.0*L/STEPS * (abs(current_matrix[:,T]-1))
-    current_matrix[current_matrix[:,WT] == 2, X] = current_matrix[current_matrix[:,WT] == 2, X] + 5.0*L/STEPS
+    current_matrix[current_matrix[:,WT] == 2, X] = current_matrix[current_matrix[:,WT] == 2, X] + 5.0*SL/STEPS
 
     # First, we sort by y position to optimize contact forces
     current_matrix = current_matrix[current_matrix[:,Y].argsort()]

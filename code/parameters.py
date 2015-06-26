@@ -19,12 +19,16 @@ G = 9.81 # gravity
 PI = np.pi
 INFINITY = 1.0E50
 
-# Dye dimensions
-H = 5.E-2 # dye height (in m)
+# Shoe dimensions
+SH = 5.E-2 # shoe height (in m)
 # Multiplicator for random generation
-H_MULTIPLICATOR = 2.
+SH_MULTIPLICATOR = 2.
 #L = 4.E-2 # dye length (in m)
-L = H # dye length (in m)
+SL = SH # show lengths (in m)
+
+# Dye dimensions
+DH = 2.E-2
+DL = DH
 
 # Particle size
 #RADIUS = 5.E-4 # Radius of each grain --- (m)
@@ -32,13 +36,14 @@ RADIUS = 1.5E-3 # Radius of each grain --- (m)
 scatterPlotPointSize = 1.2E8 * RADIUS**2
 
 # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
-NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(L/(RADIUS*1.6))
-NUMBER_PARTICLES_SIDE_WALLS = np.ceil(H/(RADIUS*1.6))
+NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
+NUMBER_PARTICLES_SIDE_WALLS = np.ceil(SH/(RADIUS*1.6))
+NUMBER_PARTICLES_DYE_BOTTOM_WALL = np.ceil(DL/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
 N = 10 
-N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2) # Number of grains
+N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2 + NUMBER_PARTICLES_DYE_BOTTOM_WALL) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
