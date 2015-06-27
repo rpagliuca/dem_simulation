@@ -2,6 +2,7 @@ from parameters import *
 from functions import *
 
 def apply_forces(current_matrix):
+    # This function HAS to receive a sorted matrix based on Y position
     # Now we iterate over every particle, only accounting other particles which y_i - y_j <= 2*RADIUS
     # Last particle shouldn't interact with any other. It has already interacted with the previous ones.
     for i in range (0, N-1):
@@ -48,13 +49,11 @@ def apply_forces(current_matrix):
             contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
 
             # Force 4 => Friction force
-            # To be modelled
             # I'm not modelling as Cundall, but as Haff and Werner
             relative_velocities = (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1])
             tangent_relative_velocities = relative_velocities - (relative_velocities.transpose() - np.einsum('ij, ij->i', relative_velocities, radial_unitary_vector)).transpose() * radial_unitary_vector
             tangent_relative_velocities_module = np.sqrt(tangent_relative_velocities[:, 0]**2 + tangent_relative_velocities[:, 1]**2) + 1.E-20
             tangent_unitary_vector = (tangent_relative_velocities.transpose() / tangent_relative_velocities_module).transpose()
-            GBPM_GAMMA = 1.E-6
             contact_forces += - GBPM_GAMMA * (tangent_relative_velocities.transpose() * deformations).transpose()
 
             # Write contact_forces to row_of_interest view based on possible_interactions items (indeces)
@@ -65,6 +64,7 @@ def apply_forces(current_matrix):
             
     # Apply gravity and Stoke's air drag (except for wall particles by multiplying by column T)
     # Force 5 => Gravity
+    # and
     # Force 6 => Stoke's air drag
     current_matrix[:, FX:FY+1] += ((-6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + (np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
     current_matrix[:, FX:FY+1] += (((np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()

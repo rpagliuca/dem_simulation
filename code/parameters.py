@@ -33,17 +33,18 @@ DL = DH
 # Particle size
 #RADIUS = 5.E-4 # Radius of each grain --- (m)
 RADIUS = 1.5E-3 # Radius of each grain --- (m)
-scatterPlotPointSize = 1.2E8 * RADIUS**2
+scatterPlotPointSize = 1.0E8 * RADIUS**2
 
 # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
 NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
-NUMBER_PARTICLES_SIDE_WALLS = np.ceil(SH/(RADIUS*1.6))
+NUMBER_PARTICLES_SIDE_WALL = np.ceil(SH/(RADIUS*1.6))
 NUMBER_PARTICLES_DYE_BOTTOM_WALL = np.ceil(DL/(RADIUS*1.6))
+NUMBER_PARTICLES_DYE_SIDE_WALL = np.ceil(DH/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 10 
-N += int(NUMBER_PARTICLES_BOTTOM_WALL + NUMBER_PARTICLES_SIDE_WALLS*2 + NUMBER_PARTICLES_DYE_BOTTOM_WALL) # Number of grains
+N = 100
+N += int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
 MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
@@ -57,6 +58,10 @@ E_TILDE = 1.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
 
 # Viscous parameter
 GAMMA_R = 1.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
+
+# Friction parameter
+GBPM_GAMMA = 1.E-6
+#GBPM_GAMMA = 0
 
 # Material of wall
 WALL_MASS = INFINITY

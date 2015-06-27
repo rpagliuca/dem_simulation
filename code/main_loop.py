@@ -9,15 +9,18 @@ if realtimePlot:
     scatterPoints = None
     plt.ion()
     plt.show()
-    plt.axis([0 - SL*0.05, 2*SL + SL*0.05, -DH - 2*(DH+SH)*0.05, 2*SH + 2*SH*0.05])
+    # Original limits
+    x0 = 0; xf = 2*SL+DL; xl = xf-x0
+    y0 = -DH; yf = 2*SH; yl = yf-y0
+    # Limits with a little margin
+    margin = 0.05
+    x0 = x0 - margin*xl; xf = xf + margin*xl;
+    y0 = y0 - margin*yl; yf = yf + margin*yl;
+    plt.axis([x0, xf, y0, yf])
     plt.axes().set_aspect('equal')
 
 # Solving steps
 for step in range(1, STEPS+1):
-
-    # Move shoe horizontally
-    #current_matrix[:,X] = current_matrix[:,X]+5.0*L/STEPS * (abs(current_matrix[:,T]-1))
-    current_matrix[current_matrix[:,WT] == 2, X] = current_matrix[current_matrix[:,WT] == 2, X] + 5.0*SL/STEPS
 
     # First, we sort by y position to optimize contact forces
     current_matrix = current_matrix[current_matrix[:,Y].argsort()]
@@ -32,6 +35,9 @@ for step in range(1, STEPS+1):
 
     # Calculate velocities from force
     current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + ((current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1]).transpose()*current_matrix[:,T]/(2*current_matrix[:,M])).transpose() * DT
+
+    # Move shoe horizontally
+    current_matrix[current_matrix[:,WT] == 2, VX] = 0.5
 
     # Calculate position from force and velocity
     #current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
