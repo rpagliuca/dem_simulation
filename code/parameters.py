@@ -32,7 +32,7 @@ DL = DH
 
 # Particle size
 #RADIUS = 5.E-4 # Radius of each grain --- (m)
-RADIUS = 1.5E-3 # Radius of each grain --- (m)
+RADIUS = 5.E-4 # Radius of each grain --- (m)
 scatterPlotPointSize = 1.0E8 * RADIUS**2
 
 # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
@@ -43,7 +43,7 @@ NUMBER_PARTICLES_DYE_SIDE_WALL = np.ceil(DH/(RADIUS*1.6))
 
 # Simulation parameters taken from BIRWISCH et al., 2009
 # Material
-N = 100
+N = 3000
 N += int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
 MASS= 7.63E-8 # Mass of each grain --- (kg)
 MU = 0.5 # Drag coefficient --- (dimensionless)
@@ -53,14 +53,15 @@ MU_W = 0.15 # --- (dimensionless)
 
 # Repulsion parameters
 #E_TILDE = 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
-E_TILDE = 1.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+#E_TILDE = 1.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+E_TILDE = 15.0E32 * 1.0E-30# For 5.E-4 radius
 #E_TILDE = 0.
 
 # Viscous parameter
-GAMMA_R = 1.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
+GAMMA_R = 2.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
 
 # Friction parameter
-GBPM_GAMMA = 1.E-6
+GBPM_GAMMA = 1.E-5
 #GBPM_GAMMA = 0
 
 # Material of wall
@@ -69,11 +70,12 @@ WALL_MASS = INFINITY
 # Misc parameters
 T0 = 0. # Initial time --- (s)
 #TF = 3. # End time --- (s)
-STEPS = 2000 # Number of steps --- (integer)
+STEPS = 20000 # Number of steps --- (integer)
 #STEPS = 5 # Number of steps --- (integer)
 #DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
-DT = 5.E-4
+DT = 5.E-5
 TF = T0 + STEPS*DT
+print TF
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 
 # Derivative constants

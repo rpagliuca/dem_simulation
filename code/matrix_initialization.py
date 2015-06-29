@@ -5,6 +5,8 @@ from numba import jit
 from parameters import *
 from init_overlap_fix import *
 
+print 'Beggining matrix initialization...'
+
 # Initializing matrices
 EMPTY_MATRIX = np.zeros((N, DIMENSIONS*3. + 3.)) # Each matrix has 2 dimensions x 3 types of values (X, Y, VX, VY, FX, FY) plus additional columns: Mass (M), Type (T) and Wall type (WT)
 current_matrix = np.copy(EMPTY_MATRIX)
@@ -71,4 +73,8 @@ current_matrix[offset:offset+NUMBER_PARTICLES_DYE_SIDE_WALL, WT] = 1 # static
 offset = offset+NUMBER_PARTICLES_DYE_SIDE_WALL
 current_matrix[0:offset, T] = 0
 
+print 'Finished matrix initialization...'
+
 current_matrix = init_overlap_fix(current_matrix)
+
+

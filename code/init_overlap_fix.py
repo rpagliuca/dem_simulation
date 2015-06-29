@@ -3,6 +3,8 @@ from functions import *
 
 def init_overlap_fix(current_matrix):
 
+    print 'Beggining overlap fix...'
+
     # First, we sort by y position to optimize contact forces
     current_matrix = current_matrix[current_matrix[:,Y].argsort()]
 
@@ -27,11 +29,12 @@ def init_overlap_fix(current_matrix):
         # Clip distances to 2*RADIUS, so every touching particle will be set value 0 and stored on clipped_distances
         clipped_distances = (distances - 2*RADIUS).clip(min=0)
         touching_particles = row_of_interest[row_of_interest[clipped_distances == 0, T] == 1]
-        print touching_particles
 
         if touching_particles.size > 0:
             # Zero everything from this column if it is a particle and has touching neighbours
             if current_matrix[i, T] == 1:
                 current_matrix[i, :] = 0
+
+    print 'Finished overlap fix...'
 
     return current_matrix
