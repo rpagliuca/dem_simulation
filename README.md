@@ -1,8 +1,10 @@
-# dem_simulation
+# Discrete Elements Method - Simulation of dye filling for powder metalluryg
 
-Requisites:
+## Requisites
+
   Python with Numba
 
-Run simulation:
+## Run simulation
   1) Change simulations parameters on `code/parameters.py`
+  
   2) Execute `python code/simulacao_dem.py`
