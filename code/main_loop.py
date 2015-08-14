@@ -68,7 +68,7 @@ def main_loop(current_matrix):
             plt.draw()
             plt.pause(1.0E-10)
 
-        if step % SAVE_SESSION_STEP_INTERVAL == 0:
+        if SAVE_ENABLED and step % SAVE_SESSION_STEP_INTERVAL == 0:
             output_path = SAVE_SESSION_OUTPUT_PATH
             if (SAVE_SESSION_DIFFERENT_FILE_PER_STEP):
                 output_path = output_path + "/step" + str(step)

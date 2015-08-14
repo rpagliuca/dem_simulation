@@ -24,14 +24,13 @@ load_simulation = True
 
 if load_simulation:
 
-    import_path = "/home/rafael/ln/tcc/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step2200"
+    import_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800"
     current_matrix = np.loadtxt(import_path + "/current_matrix.txt")
     SAVE_SESSION_STEP_INTERVAL, SAVE_SESSION_DIFFERENT_FILE_PER_STEP, SH, SL, SH_MULTIPLICATOR, DH, DL, N, RADIUS, scatterPlotPointSize, MASS, MU, MU_A, KAPPA_R, MU_W, shoe_velocity, step, T0, DT, STEPS, GBPM_GAMMA, GAMMA_R, E_TILDE = np.loadtxt(import_path + "/parameters.txt", unpack = True)
-    SAVE_SESSION_OUTPUT_PATH = import_path
+
+    SAVE_ENABLED = False
 
     # Convert some floats to int
-    SAVE_SESSION_STEP_INTERVAL = int(SAVE_SESSION_STEP_INTERVAL)
-    SAVE_SESSION_STEP_INTERVAL = int(INFINITY)
     step = int(step)
     STEPS = int(STEPS)
     N = int(N)
@@ -100,13 +99,16 @@ else:
     #STEPS = 5 # Number of steps --- (integer)
     #DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
     DT = 1.E-4
-    SAVE_SESSION_STEP_INTERVAL = int(INFINITY) # Number of steps between saving session
+
+    # Save parameters
+    SAVE_ENABLED = True
+    SAVE_SESSION_STEP_INTERVAL = 400 # Number of steps between saving session
     SAVE_SESSION_OUTPUT_PATH = "../output/simulation" + "_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
     if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
         print("Output path already exists. Exiting...")
-        #exit()
+        exit()
 
 TF = T0 + STEPS*DT
 print TF
