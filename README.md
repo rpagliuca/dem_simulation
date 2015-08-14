@@ -1,0 +1,8 @@
+# dem_simulation
+
+Requisites:
+  Python with Numba
+
+Run simulation:
+  1) Change simulations parameters on `code/parameters.py`
+  2) Execute `python code/simulacao_dem.py`
