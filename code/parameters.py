@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
 import time
 import os
-from numba import jit
 
 # Reproduce random results for debugging
 np.random.seed(1)
@@ -35,7 +33,7 @@ if load_simulation:
     STEPS = int(STEPS)
     N = int(N)
 
-    start_step = step
+    start_step = step + 1
 
 else:
 
@@ -101,12 +99,12 @@ else:
     DT = 1.E-4
 
     # Save parameters
-    SAVE_ENABLED = True
+    SAVE_ENABLED = False
     SAVE_SESSION_STEP_INTERVAL = 400 # Number of steps between saving session
     SAVE_SESSION_OUTPUT_PATH = "../output/simulation" + "_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
-    if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
+    if SAVE_ENABLED and os.path.exists(SAVE_SESSION_OUTPUT_PATH):
         print("Output path already exists. Exiting...")
         exit()
 
