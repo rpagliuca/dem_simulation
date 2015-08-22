@@ -1,3 +1,4 @@
 OK Fix step number after loading state (I think there is a difference of 1 step)
-* Convert everything to functions
-* Teste different geometries for dye (independent horizontal e vertical translations)
+OK Convert everything to functions
+* Convert Paralell to using processes, and use shared memory
+* Test different geometries for dye (independent horizontal e vertical translations)

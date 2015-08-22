@@ -1,12 +1,36 @@
 import functions
+from joblib import Parallel, delayed
 from parameters import * # Load all global variables from parameters
 
 def apply_forces(current_matrix):
+
+    # Apply "loop" forces -- forces that depend on the neighbours of the particle
+    cores = 8
+    N_SPLIT = int(np.floor(N/cores))
+    Parallel(n_jobs=cores, backend="threading")(
+    #Parallel(n_jobs=cores)(
+        delayed(loop_forces)(current_matrix, i*N_SPLIT, (i+1)*N_SPLIT-1) for i in range(0, cores))
+            
+    # Apply forces that do not depend on neighbours
+    # Gravity and Stoke's air drag (except for wall particles -- by multiplying by column T we have null force for wall particles)
+    # Force 5 => Gravity
+    # and
+    # Force 6 => Stoke's air drag
+    current_matrix[:, FX:FY+1] += ((-6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + (np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
+    current_matrix[:, FX:FY+1] += (((np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
+
+def loop_forces(current_matrix, start_index = False, end_index = False):
     # This function HAS to receive a sorted matrix based on Y position, if not, it will return the wrong results
+
+    # Default indices
+    if not start_index:
+        start_index = 0
+    if not end_index:
+        end_index = N-1
 
     # Now we iterate over every particle, only accounting other particles which y_i - y_j <= 2*RADIUS
     # Last particle shouldn't interact with any other. It has already interacted with the previous ones.
-    for i in range (0, N-1):
+    for i in range (start_index, end_index):
 
         # np.argmax returns the minimum index wich satisfies some arbitrary condition, but it is way slower than using numba pre-compiled functions
         #max_neighbour_offset = np.argmax(current_matrix[i+1:, Y] > current_matrix[i, Y] + 2*RADIUS)
@@ -60,12 +84,3 @@ def apply_forces(current_matrix):
 
             # Add forces and apply its negative sum to current particle (Newton's Second Law of motion)
             current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces) 
-            
-    # Apply gravity and Stoke's air drag (except for wall particles -- by multiplying by column T we have null force for wall particles)
-    # Force 5 => Gravity
-    # and
-    # Force 6 => Stoke's air drag
-    current_matrix[:, FX:FY+1] += ((-6 * PI * MU_A * RADIUS * current_matrix[:, VX:VY+1] + (np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
-    current_matrix[:, FX:FY+1] += (((np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
-
-    return current_matrix

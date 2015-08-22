@@ -2,7 +2,9 @@
 
 ## Requisites
 
-  Python with Numba (installing Anaconda will suffice)
+  Python with Numba and Joblib
+    - Install Anaconda
+    - Install joblib (conda install joblib)
 
 ## Run simulation
 
