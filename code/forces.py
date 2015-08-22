@@ -2,7 +2,8 @@ import functions
 from parameters import * # Load all global variables from parameters
 
 def apply_forces(current_matrix):
-    # This function HAS to receive a sorted matrix based on Y position
+    # This function HAS to receive a sorted matrix based on Y position, if not, it will return the wrong results
+
     # Now we iterate over every particle, only accounting other particles which y_i - y_j <= 2*RADIUS
     # Last particle shouldn't interact with any other. It has already interacted with the previous ones.
     for i in range (0, N-1):
@@ -23,15 +24,13 @@ def apply_forces(current_matrix):
         possible_interactions = np.less_equal(row_of_interest[:,X], current_matrix[i, X] + 2*RADIUS)
         cell_of_interest = row_of_interest[possible_interactions, :]
 
-        #contact_forces = 0
-
         # If there is any possible neighbour
         if cell_of_interest.size > 0:
 
-            # Get distance of possible neighbours
+            # Get distances of possible neighbours
             distances = np.sqrt(np.square(cell_of_interest[:,X] - current_matrix[i,X]) + np.square(cell_of_interest[:,Y] - current_matrix[i, Y]))
 
-            # Generate unitary vector
+            # Define the unitary vector
             radial_unitary_vector = ((cell_of_interest[:, X:Y+1] - current_matrix[i, X:Y+1]).transpose() / (distances + 1.E-20)).transpose()
 
             # Discard distances greater than 2*RADIUS
@@ -49,20 +48,20 @@ def apply_forces(current_matrix):
             contact_forces += - (GAMMA_R * RADIUS * np.sqrt(EFFECTIVE_RADIUS * deformations).transpose() * np.einsum( 'ij, ij->i', (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1]) , radial_unitary_vector ) * radial_unitary_vector.transpose()).transpose()
 
             # Force 4 => Friction force
-            # I'm not modelling as Cundall, but as Haff and Werner
+            # I'm not modelling this force as Cundall, but as Haff and Werner
             relative_velocities = (cell_of_interest[:, VX:VY+1] - current_matrix[i, VX:VY+1])
             tangent_relative_velocities = relative_velocities - (relative_velocities.transpose() - np.einsum('ij, ij->i', relative_velocities, radial_unitary_vector)).transpose() * radial_unitary_vector
             tangent_relative_velocities_module = np.sqrt(tangent_relative_velocities[:, 0]**2 + tangent_relative_velocities[:, 1]**2) + 1.E-20
             tangent_unitary_vector = (tangent_relative_velocities.transpose() / tangent_relative_velocities_module).transpose()
             contact_forces += - GBPM_GAMMA * (tangent_relative_velocities.transpose() * deformations).transpose()
 
-            # Write contact_forces to row_of_interest view based on possible_interactions items (indeces)
+            # Write contact_forces to row_of_interest view based on possible_interactions items (indices)
             row_of_interest[possible_interactions,FX:FY+1] += contact_forces 
 
             # Add forces and apply its negative sum to current particle (Newton's Second Law of motion)
             current_matrix[i, FX:FY+1] += -np.einsum('ij->j', contact_forces) 
             
-    # Apply gravity and Stoke's air drag (except for wall particles by multiplying by column T)
+    # Apply gravity and Stoke's air drag (except for wall particles -- by multiplying by column T we have null force for wall particles)
     # Force 5 => Gravity
     # and
     # Force 6 => Stoke's air drag
@@ -70,4 +69,3 @@ def apply_forces(current_matrix):
     current_matrix[:, FX:FY+1] += (((np.outer(current_matrix[:, M]*G, np.array((0, -1))))).transpose() * current_matrix[:, T]).transpose()
 
     return current_matrix
-
