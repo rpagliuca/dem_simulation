@@ -1,6 +1,5 @@
 from numba import jit
-from parameters import *
-from matrix_initialization import *
+from parameters import * # Load all global variables from parameters
 
 # Source: http://stackoverflow.com/a/29799815/1501575
 # Pre-compiled function to find first element of array greater than

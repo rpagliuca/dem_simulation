@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from numba import jit
-from parameters import *
-from init_overlap_fix import *
+import init_overlap_fix
+from parameters import * # Load all global variables from parameters
 
 def matrix_initialization():
 
@@ -77,6 +76,6 @@ def matrix_initialization():
 
     print 'Finished matrix initialization...'
 
-    current_matrix = init_overlap_fix(current_matrix)
+    current_matrix = init_overlap_fix.init_overlap_fix(current_matrix)
 
     return current_matrix

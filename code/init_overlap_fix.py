@@ -1,5 +1,5 @@
-from parameters import *
-from functions import *
+import functions
+from parameters import * # Load all global variables from parameters
 
 def init_overlap_fix(current_matrix):
 
@@ -13,7 +13,7 @@ def init_overlap_fix(current_matrix):
 
     for i in range (0, N-1):
 
-        max_neighbour_offset = find_first_item_greater_than(current_matrix[i+1:, Y], current_matrix[i, Y] + 2*RADIUS)
+        max_neighbour_offset = functions.find_first_item_greater_than(current_matrix[i+1:, Y], current_matrix[i, Y] + 2*RADIUS)
 
         if max_neighbour_offset == -1:
             max_neighbour_offset = current_matrix[i+1:,Y].size

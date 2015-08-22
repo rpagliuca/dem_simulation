@@ -1,5 +1,5 @@
-from parameters import *
-from functions import *
+import functions
+from parameters import * # Load all global variables from parameters
 
 def apply_forces(current_matrix):
     # This function HAS to receive a sorted matrix based on Y position
@@ -9,7 +9,7 @@ def apply_forces(current_matrix):
 
         # np.argmax returns the minimum index wich satisfies some arbitrary condition, but it is way slower than using numba pre-compiled functions
         #max_neighbour_offset = np.argmax(current_matrix[i+1:, Y] > current_matrix[i, Y] + 2*RADIUS)
-        max_neighbour_offset = find_first_item_greater_than(current_matrix[i+1:, Y], current_matrix[i, Y] + 2*RADIUS)
+        max_neighbour_offset = functions.find_first_item_greater_than(current_matrix[i+1:, Y], current_matrix[i, Y] + 2*RADIUS)
 
         if max_neighbour_offset == -1:
             max_neighbour_offset = current_matrix[i+1:,Y].size

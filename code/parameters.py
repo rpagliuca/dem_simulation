@@ -5,10 +5,13 @@ import numpy as np
 import time
 import os
 
+global np, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, load_simulation
+
 # Reproduce random results for debugging
 np.random.seed(1)
 
 # Flags
+load_simulation = True
 realtimePlot = True
 stepPlotFlag = False
 lastPlotFlag = False
@@ -18,8 +21,19 @@ G = 9.81 # gravity
 PI = np.pi
 INFINITY = 1.0E50
 
-load_simulation = True
+# Constants to be used as columns on the data matrices
+X = 0 # Positon on x
+Y = 1 # Position on y
+VX = 2 # Velocity x-component
+VY = 3 # Velocity y-component
+FX = 4 # Force x-component
+FY = 5 # Force y-component
+M = 6 # Mass
+T = 7 # Type (particle -> 1, wall -> 0)
+WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)
+DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 
+# If flag load_simulation is on
 if load_simulation:
 
     import_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800"
@@ -35,7 +49,7 @@ if load_simulation:
 
     start_step = step + 1
 
-else:
+else: # If flag load_simulation is off, then it is a new simulation and we should set the default parameters
 
     # Initial shoe velocity
     shoe_velocity = 0.0
@@ -108,20 +122,6 @@ else:
         print("Output path already exists. Exiting...")
         exit()
 
-TF = T0 + STEPS*DT
-print TF
-DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
-
 # Derivative constants
+TF = T0 + STEPS*DT
 EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
-
-# Constants to be used as columns on the data matrices
-X = 0 # Positon on x
-Y = 1 # Position on y
-VX = 2 # Velocity x-component
-VY = 3 # Velocity y-component
-FX = 4 # Force x-component
-FY = 5 # Force y-component
-M = 6 # Mass
-T = 7 # Type (particle -> 1, wall -> 0)
-WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)

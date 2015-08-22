@@ -1,7 +1,7 @@
 import os
-from parameters import *
-from matrix_initialization import *
-from forces import *
+import forces
+import matplotlib.pyplot as plt
+from parameters import * # Load all global variables from parameters
 
 def main_loop(current_matrix):
 
@@ -45,7 +45,7 @@ def main_loop(current_matrix):
         # Reset matrix of forces
         current_matrix[:,FX:FY+1] = np.zeros((N,DIMENSIONS))
 
-        current_matrix = apply_forces(current_matrix)
+        current_matrix = forces.apply_forces(current_matrix)
 
         # Calculate velocities from force
         current_matrix[:,VX:VY+1] = last_matrix[:,VX:VY+1] + ((current_matrix[:,FX:FY+1] + last_matrix[:,FX:FY+1]).transpose()*current_matrix[:,T]/(2*current_matrix[:,M])).transpose() * DT
