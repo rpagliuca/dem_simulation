@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import functions
 from parameters import * # Load all global variables from parameters
 

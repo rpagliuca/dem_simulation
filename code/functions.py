@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from numba import jit
 from parameters import * # Load all global variables from parameters
 
