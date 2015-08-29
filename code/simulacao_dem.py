@@ -17,9 +17,10 @@ if not p.load_saved_state:
     p.load_default_parameters()
     matrix_initialization.matrix_initialization()
 else: # Or load parameters from saved state
-    saved_states.load_state("/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800")
+    saved_states.load_state(p.saved_state_path)
 
 # Calculate some derivatives parameters
 p.load_parameters_post()
 
+# Run the simulation per se
 main_loop.main_loop(p.current_matrix)

@@ -7,13 +7,14 @@ import os
 
 def load_parameters_pre():
 
-    global load_saved_state, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
+    global saved_state_path, load_saved_state, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
 
     # Reproduce random results for debugging
     np.random.seed(1)
 
     # Flags
     load_saved_state = True
+    saved_state_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800"
     realtimePlot = True
     stepPlotFlag = False
     lastPlotFlag = False
@@ -100,12 +101,12 @@ def load_default_parameters():
     N = DESIRED_N_PARTICLES + int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
 
     # Save parameters
-    SAVE_ENABLED = False
+    SAVE_ENABLED = True
     SAVE_SESSION_STEP_INTERVAL = 400 # Number of steps between saving session
-    SAVE_SESSION_OUTPUT_PATH = "../output/simulation"
+    SAVE_SESSION_OUTPUT_PATH = "../output/"
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
-    filename =  "_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
+    filename =  "simulation_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
     if SAVE_ENABLED:
         SAVE_SESSION_OUTPUT_PATH = os.path.join(SAVE_SESSION_OUTPUT_PATH, filename)
         if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
@@ -119,4 +120,3 @@ def load_parameters_post():
     # Derivative constants
     TF = T0 + STEPS*DT
     EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
-
