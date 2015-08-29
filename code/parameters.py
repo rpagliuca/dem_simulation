@@ -61,16 +61,13 @@ def load_default_parameters():
     RADIUS = 8.E-4 # Radius of each grain --- (m)
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
-    # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
-    NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
-    NUMBER_PARTICLES_SIDE_WALL = np.ceil(SH/(RADIUS*1.6))
-    NUMBER_PARTICLES_DYE_BOTTOM_WALL = np.ceil(DL/(RADIUS*1.6))
-    NUMBER_PARTICLES_DYE_SIDE_WALL = np.ceil(DH/(RADIUS*1.6))
+    # This is the desired number of particles to be simulated
+    DESIRED_N_PARTICLES = 3000
+    # Note: the real number of simulated particles (N) will vary. It is the sum of the DESIRED_N_PARTICLES, with the number of particles needed to create the walls of the dye, and the subtraction of the conflicting overlapped particles that will be excluded from simulation after random generation
 
     # Simulation parameters taken from BIRWISCH et al., 2009
+
     # Material
-    N = 3000
-    N += int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
     MASS= 7.63E-8 # Mass of each grain --- (kg)
     MU = 0.5 # Drag coefficient --- (dimensionless)
     MU_A = 2.0E-5 # Stoke air drag coefficient --- (Pa . s)
@@ -94,18 +91,32 @@ def load_default_parameters():
     STEPS = 1000 # Number of steps --- (integer)
     DT = 1.E-4
 
+    # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
+    NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
+    NUMBER_PARTICLES_SIDE_WALL = np.ceil(SH/(RADIUS*1.6))
+    NUMBER_PARTICLES_DYE_BOTTOM_WALL = np.ceil(DL/(RADIUS*1.6))
+    NUMBER_PARTICLES_DYE_SIDE_WALL = np.ceil(DH/(RADIUS*1.6))
+
+    N = DESIRED_N_PARTICLES + int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
+
     # Save parameters
     SAVE_ENABLED = False
     SAVE_SESSION_STEP_INTERVAL = 400 # Number of steps between saving session
-    SAVE_SESSION_OUTPUT_PATH = "../output/simulation" + "_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
+    SAVE_SESSION_OUTPUT_PATH = "../output/simulation"
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
-    if SAVE_ENABLED and os.path.exists(SAVE_SESSION_OUTPUT_PATH):
-        print("Output path already exists. Exiting...")
-        exit()
+    filename =  "_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
+    if SAVE_ENABLED:
+        SAVE_SESSION_OUTPUT_PATH = os.path.join(SAVE_SESSION_OUTPUT_PATH, filename)
+        if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
+            print("Output path already exists. Exiting...")
+            exit()
 
 def load_parameters_post():
-    global TF, EFFECTIVE_RADIUS
+
+    global TF, EFFECTIVE_RADIUS, SAVE_SESSION_OUTPUT_PATH
+
     # Derivative constants
     TF = T0 + STEPS*DT
     EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
+
