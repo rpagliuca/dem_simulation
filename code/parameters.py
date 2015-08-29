@@ -5,7 +5,7 @@ import numpy as np
 import time
 import os
 
-global np, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, load_simulation
+global N, np, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, load_simulation
 
 # Reproduce random results for debugging
 np.random.seed(1)
@@ -29,7 +29,7 @@ VY = 3 # Velocity y-component
 FX = 4 # Force x-component
 FY = 5 # Force y-component
 M = 6 # Mass
-T = 7 # Type (particle -> 1, wall -> 0)
+T = 7 # Type (particle -> 1, wall -> 0, conflicting particles to be removed on initialization overlap fix -> 9)
 WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)
 DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 

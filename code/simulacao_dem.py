@@ -3,7 +3,7 @@
 import matrix_initialization
 import main_loop
 import saved_states
-from parameters import * # Load all global variables from parameters
+import parameters as p
 
 #saved_states.saved_states()
 
