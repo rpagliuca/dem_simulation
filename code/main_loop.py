@@ -11,8 +11,7 @@ def main_loop(current_matrix):
     global shoe_velocity
 
 # Initializing matplotlib scatter plot data
-    stepPlot = False
-    if p.realtimePlot:
+    if p.realtimePlot or p.stepPlotFlag:
         scatterPoints = None
         plt.ion()
         plt.show()
@@ -63,7 +62,12 @@ def main_loop(current_matrix):
         #current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
         current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
 
-        if p.realtimePlot:
+        if p.realtimePlot or (p.stepPlotFlag and step % p.stepPlotSteps == 0):
+            plotNow = True
+        else:
+            plotNow = False
+
+        if plotNow:
             if scatterPoints:
                 scatterPoints.remove()
                 text.remove()

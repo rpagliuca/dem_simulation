@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import functions
-from joblib import Parallel, delayed
 import parameters as p # Load all global variables from parameters
 import numpy as np
+from joblib import Parallel, delayed
+from joblib.pool import has_shareable_memory
 
 def apply_forces(current_matrix):
 
@@ -11,8 +12,16 @@ def apply_forces(current_matrix):
 
     # Multi thread/core
     n_split = int(np.floor(p.N/p.number_of_cores))
+
+    # Multi thread
     #Parallel(n_jobs=p.number_of_cores, backend="threading")( # Multi thread
-    Parallel(n_jobs=p.number_of_cores)( # Multi core
+
+    # Multi core
+    #Parallel(n_jobs=p.number_of_cores)( # Multi core
+    #    delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
+
+    # Testing memmap
+    Parallel(n_jobs=p.number_of_cores, max_nbytes=1)( # Multi core
         delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
     # Single threaded
