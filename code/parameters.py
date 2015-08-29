@@ -7,15 +7,18 @@ import os
 
 def load_parameters_pre():
 
-    global saved_state_path, load_saved_state, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
+    global number_of_cores, saved_state_path, load_saved_state, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
 
     # Reproduce random results for debugging
     np.random.seed(1)
 
+    # Multicore
+    number_of_cores = 1 # Used if multicore/multithreaded simulation enabled on forces.py
+
     # Flags
-    load_saved_state = True
-    saved_state_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800"
-    realtimePlot = True
+    load_saved_state = False
+    saved_state_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N593/step800"
+    realtimePlot = False
     stepPlotFlag = False
     lastPlotFlag = False
 
@@ -58,12 +61,11 @@ def load_default_parameters():
     DL = DH
 
     # Particle size
-    #RADIUS = 2.E-4 # Radius of each grain --- (m)
-    RADIUS = 8.E-4 # Radius of each grain --- (m)
+    RADIUS = 8.E-4/4. # Radius of each grain --- (m)
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # This is the desired number of particles to be simulated
-    DESIRED_N_PARTICLES = 3000
+    DESIRED_N_PARTICLES = 10000
     # Note: the real number of simulated particles (N) will vary. It is the sum of the DESIRED_N_PARTICLES, with the number of particles needed to create the walls of the dye, and the subtraction of the conflicting overlapped particles that will be excluded from simulation after random generation
 
     # Simulation parameters taken from BIRWISCH et al., 2009
@@ -89,8 +91,8 @@ def load_default_parameters():
 
     # Misc parameters
     T0 = 0. # Initial time --- (s)
-    STEPS = 1000 # Number of steps --- (integer)
-    DT = 1.E-4
+    STEPS = 100 # Number of steps --- (integer)
+    DT = 1.E-4/4.
 
     # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
     NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
@@ -106,13 +108,6 @@ def load_default_parameters():
     SAVE_SESSION_OUTPUT_PATH = "../output/"
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
-    filename =  "simulation_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
-    if SAVE_ENABLED:
-        SAVE_SESSION_OUTPUT_PATH = os.path.join(SAVE_SESSION_OUTPUT_PATH, filename)
-        if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
-            print("Output path already exists. Exiting...")
-            exit()
-
 def load_parameters_post():
 
     global TF, EFFECTIVE_RADIUS, SAVE_SESSION_OUTPUT_PATH
@@ -120,3 +115,11 @@ def load_parameters_post():
     # Derivative constants
     TF = T0 + STEPS*DT
     EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
+
+    # Define output filename of simulation
+    filename =  "simulation_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
+    if SAVE_ENABLED:
+        SAVE_SESSION_OUTPUT_PATH = os.path.join(SAVE_SESSION_OUTPUT_PATH, filename)
+        if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
+            print("Output path already exists. Exiting...")
+            exit()

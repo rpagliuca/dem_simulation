@@ -10,11 +10,10 @@ def apply_forces(current_matrix):
     # Apply "loop" forces -- forces that depend on the neighbours of the particle
 
     # Multi thread/core
-    cores = 1
-    N_SPLIT = int(np.floor(p.N/cores))
-    Parallel(n_jobs=cores, backend="threading")( # Multi thread
-    #Parallel(n_jobs=cores)( # Multi core
-        delayed(loop_forces)(current_matrix, i*N_SPLIT, (i+1)*N_SPLIT-1) for i in range(0, cores))
+    n_split = int(np.floor(p.N/p.number_of_cores))
+    #Parallel(n_jobs=p.number_of_cores, backend="threading")( # Multi thread
+    Parallel(n_jobs=p.number_of_cores)( # Multi core
+        delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
     # Single threaded
     # loop_forces(current_matrix, 0, N-1)
