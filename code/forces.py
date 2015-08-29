@@ -7,11 +7,16 @@ from parameters import * # Load all global variables from parameters
 def apply_forces(current_matrix):
 
     # Apply "loop" forces -- forces that depend on the neighbours of the particle
-    cores = 8
+
+    # Multi thread/core
+    cores = 1
     N_SPLIT = int(np.floor(N/cores))
-    Parallel(n_jobs=cores, backend="threading")(
-    #Parallel(n_jobs=cores)(
+    Parallel(n_jobs=cores, backend="threading")( # Multi thread
+    #Parallel(n_jobs=cores)( # Multi core
         delayed(loop_forces)(current_matrix, i*N_SPLIT, (i+1)*N_SPLIT-1) for i in range(0, cores))
+
+    # Single threaded
+    # loop_forces(current_matrix, 0, N-1)
             
     # Apply forces that do not depend on neighbours
     # Gravity and Stoke's air drag (except for wall particles -- by multiplying by column T we have null force for wall particles)

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 import numpy as np
 import time
@@ -11,7 +11,7 @@ global np, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, load_simul
 np.random.seed(1)
 
 # Flags
-load_simulation = True
+load_simulation = False
 realtimePlot = True
 stepPlotFlag = False
 lastPlotFlag = False
@@ -37,14 +37,22 @@ DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 if load_simulation:
 
     import_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N3208/step800"
+
+    print "Loading state from:"
+    print import_path
+    print ""
+
     current_matrix = np.loadtxt(import_path + "/current_matrix.txt")
     SAVE_SESSION_STEP_INTERVAL, SAVE_SESSION_DIFFERENT_FILE_PER_STEP, SH, SL, SH_MULTIPLICATOR, DH, DL, N, RADIUS, scatterPlotPointSize, MASS, MU, MU_A, KAPPA_R, MU_W, shoe_velocity, step, T0, DT, STEPS, GBPM_GAMMA, GAMMA_R, E_TILDE = np.loadtxt(import_path + "/parameters.txt", unpack = True)
+
+    print "N = " + str(N)
 
     SAVE_ENABLED = False
 
     # Convert some floats to int
     step = int(step)
     STEPS = int(STEPS)
+    STEPS = 1000
     N = int(N)
 
     start_step = step + 1
@@ -68,8 +76,8 @@ else: # If flag load_simulation is off, then it is a new simulation and we shoul
     DL = DH
 
     # Particle size
-    #RADIUS = 5.E-4 # Radius of each grain --- (m)
-    RADIUS = 8.E-4 # Radius of each grain --- (m)
+    RADIUS = 2.E-4 # Radius of each grain --- (m)
+    #RADIUS = 8.E-4 # Radius of each grain --- (m)
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
@@ -107,10 +115,10 @@ else: # If flag load_simulation is off, then it is a new simulation and we shoul
     # Misc parameters
     T0 = 0. # Initial time --- (s)
     #TF = 3. # End time --- (s)
-    STEPS = 20000 # Number of steps --- (integer)
+    STEPS = 1000 # Number of steps --- (integer)
     #STEPS = 5 # Number of steps --- (integer)
     #DT = (TF-T0)/STEPS # Timestep between iterations --- (s)
-    DT = 1.E-4
+    DT = 1.E-4/4.
 
     # Save parameters
     SAVE_ENABLED = False
