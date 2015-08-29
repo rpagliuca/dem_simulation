@@ -80,4 +80,4 @@ def matrix_initialization():
 
     current_matrix = init_overlap_fix.init_overlap_fix(current_matrix)
 
-    return current_matrix
+    p.current_matrix = current_matrix
