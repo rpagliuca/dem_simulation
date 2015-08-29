@@ -21,7 +21,7 @@ def apply_forces(current_matrix):
     #    delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
     # Testing memmap
-    Parallel(n_jobs=p.number_of_cores, max_nbytes=1)( # Multi core
+    Parallel(n_jobs=p.number_of_cores, max_nbytes=1, mmap_mode="w+")( # Multi core
         delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
     # Single threaded
@@ -94,9 +94,9 @@ def loop_forces(current_matrix, start_index = False, end_index = False):
             tangent_relative_velocities_module = np.sqrt(tangent_relative_velocities[:, 0]**2 + tangent_relative_velocities[:, 1]**2) + 1.E-20
             tangent_unitary_vector = (tangent_relative_velocities.transpose() / tangent_relative_velocities_module).transpose()
             contact_forces += - p.GBPM_GAMMA * (tangent_relative_velocities.transpose() * deformations).transpose()
-
+            
             # Write contact_forces to row_of_interest view based on possible_interactions items (indices)
             row_of_interest[possible_interactions,p.FX:p.FY+1] += contact_forces 
 
-            # Add forces and apply its negative sum to current particle (Newton's Second Law of motion)
+            # Add forces and apply its negative sum to current particle (Newton's Third Law of motion)
             current_matrix[i, p.FX:p.FY+1] += -np.einsum('ij->j', contact_forces) 
