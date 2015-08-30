@@ -13,7 +13,7 @@ def load_parameters_pre():
     np.random.seed(1)
 
     # Multicore
-    number_of_cores = 1 # Used if multicore/multithreaded simulation enabled on forces.py
+    number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
     load_saved_state = False
@@ -61,7 +61,7 @@ def load_default_parameters():
     DL = DH
 
     # Particle size
-    RADIUS = 8.E-4/1. # Radius of each grain --- (m)
+    RADIUS = 8.E-4/4. # Radius of each grain --- (m)
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # This is the desired number of particles to be simulated
@@ -92,7 +92,7 @@ def load_default_parameters():
     # Misc parameters
     T0 = 0. # Initial time --- (s)
     STEPS = 20000 # Number of steps --- (integer)
-    DT = 1.E-4/1.
+    DT = 1.E-4/4.
 
     # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
     NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))

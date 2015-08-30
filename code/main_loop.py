@@ -5,6 +5,7 @@ import forces
 import matplotlib.pyplot as plt
 import parameters as p # Load all global variables from parameters
 import numpy as np
+import joblib
 
 def main_loop(current_matrix):
 
@@ -33,13 +34,23 @@ def main_loop(current_matrix):
 
     print 'Beggining solving steps...'
 
+    # Converting current_matrix to memmap
+    mem_share_folder = "/dev/shm"
+    mem_share_file = os.path.join(mem_share_folder, "dem_simulation.mmap")
+    if os.path.exists(mem_share_file):
+        os.unlink(mem_share_file)
+    joblib.dump(current_matrix, mem_share_file)
+    current_matrix_ram = current_matrix
+    current_matrix = joblib.load(mem_share_file, mmap_mode="r+")
+    current_matrix[:,:] = current_matrix_ram[:,:]
+
     # Solving steps
     for step in range(p.start_step, p.STEPS+1):
 
         time = p.T0 + (step-1)*p.DT
 
         # First, we sort by y position to optimize contact forces
-        current_matrix = current_matrix[current_matrix[:,p.Y].argsort()]
+        current_matrix[:,:] = current_matrix[current_matrix[:,p.Y].argsort()]
 
         # Store current matrix as last matrix
         last_matrix = np.copy(current_matrix)
@@ -47,8 +58,7 @@ def main_loop(current_matrix):
         # Reset matrix of forces
         current_matrix[:,p.FX:p.FY+1] = np.zeros((p.N,p.DIMENSIONS))
 
-        #current_matrix = forces.apply_forces(current_matrix)
-        forces.apply_forces(current_matrix)
+        current_matrix[:,:] = forces.apply_forces(current_matrix)
 
         # Calculate velocities from force
         current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT

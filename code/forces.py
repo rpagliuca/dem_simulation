@@ -3,30 +3,18 @@
 import functions
 import parameters as p # Load all global variables from parameters
 import numpy as np
-from joblib import Parallel, delayed
-from joblib.pool import has_shareable_memory
+import joblib
+import os
 
 def apply_forces(current_matrix):
 
     # Apply "loop" forces -- forces that depend on the neighbours of the particle
 
-    # Multi thread/core
-    n_split = int(np.floor(p.N/p.number_of_cores))
-
-    # Multi thread
-    #Parallel(n_jobs=p.number_of_cores, backend="threading")( # Multi thread
-
     # Multi core
-    #Parallel(n_jobs=p.number_of_cores)( # Multi core
-    #    delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
+    n_split = int(np.floor(p.N/p.number_of_cores))
+    joblib.Parallel(n_jobs=p.number_of_cores, max_nbytes=None)( # Multi core
+        joblib.delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
-    # Testing memmap
-    Parallel(n_jobs=p.number_of_cores, max_nbytes=1, mmap_mode="w+")( # Multi core
-        delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
-
-    # Single threaded
-    # loop_forces(current_matrix, 0, N-1)
-            
     # Apply forces that do not depend on neighbours
     # Gravity and Stoke's air drag (except for wall particles -- by multiplying by column T we have null force for wall particles)
     # Force 5 => Gravity
@@ -34,8 +22,10 @@ def apply_forces(current_matrix):
     # Force 6 => Stoke's air drag
     current_matrix[:, p.FX:p.FY+1] += ((-6 * p.PI * p.MU_A * p.RADIUS * current_matrix[:, p.VX:p.VY+1] + (np.outer(current_matrix[:, p.M]*p.G, np.array((0, -1))))).transpose() * current_matrix[:, p.T]).transpose()
     current_matrix[:, p.FX:p.FY+1] += (((np.outer(current_matrix[:, p.M]*p.G, np.array((0, -1))))).transpose() * current_matrix[:, p.T]).transpose()
+    return current_matrix
 
 def loop_forces(current_matrix, start_index = False, end_index = False):
+
     # This function HAS to receive a sorted matrix based on Y position, if not, it will return the wrong results
 
     # Default indices
