@@ -26,7 +26,6 @@ def load_state(import_path):
 
         p.step = int(p.step)
         p.STEPS = int(p.STEPS)
-        p.STEPS = 1000
         p.N = int(p.N)
 
         p.start_step = p.step + 1

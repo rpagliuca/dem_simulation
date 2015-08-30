@@ -5,11 +5,11 @@ import main_loop
 import saved_states
 import parameters as p
 
-# Function to list saved states
-#saved_states.saved_states()
-
 # Define some basic constants and parameters shared between new and saved simulations
 p.load_parameters_pre()
+
+# Function to list saved states
+#saved_states.list_saved_states()
 
 # Load parameters differently, depending if it was a new simulation, or loading from a saved state
 if not p.load_saved_state:

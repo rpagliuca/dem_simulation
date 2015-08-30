@@ -69,7 +69,6 @@ def main_loop(current_matrix):
         current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
 
         # Calculate position from force and velocity
-        #current_matrix[:,X:Y+1] = last_matrix[:,X:Y+1] + last_matrix[:,VX:VY+1]*DT + (last_matrix[:,FX:FY+1].transpose()/(2*current_matrix[:,M])).transpose() * DT**2
         current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
 
         if p.realtimePlot or (p.stepPlotFlag and step % p.stepPlotSteps == 0):
