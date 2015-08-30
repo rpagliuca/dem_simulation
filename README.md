@@ -10,4 +10,4 @@
 
   1) Change simulations parameters on `code/parameters.py`
   
-  2) Execute `python code/simulacao_dem.py`
+  2) Run `python code/main.py`
