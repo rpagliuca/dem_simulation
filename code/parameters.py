@@ -7,7 +7,7 @@ import os
 
 def load_parameters_pre():
 
-    global stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, load_saved_state, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
+    global simulation_mode, stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
 
     # Reproduce random results for debugging
     np.random.seed(1)
@@ -16,11 +16,12 @@ def load_parameters_pre():
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
-    load_saved_state = False
-    saved_state_path = "/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0008_DT0.0001_ETILDE800.0_GAMMAR200.0_GBPMGAMMA4e-05_N593/step800"
-    realtimePlot = False
+    simulation_mode = 'replay' # simulation_mode can be 'new', 'load' or 'replay'
+    #saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/step60000' # Used for both 'load' and 'replay' modes
+    saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/' # Used for both 'load' and 'replay' modes
+    realtimePlot = True
     stepPlotFlag = True
-    stepPlotSteps = 200
+    stepPlotSteps = 10
 
     # Physical and math constants
     G = 9.81 # gravity

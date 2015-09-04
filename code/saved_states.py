@@ -4,6 +4,8 @@
 import numpy as np
 import os
 import parameters as p
+import glob
+import main_loop
 
 def load_state(import_path):
 
@@ -13,6 +15,7 @@ def load_state(import_path):
 
     current_matrix_path = os.path.join(import_path, "current_matrix.txt")
     parameters_path = os.path.join(import_path, "parameters.txt")
+
     if not os.path.isfile(current_matrix_path) or not os.path.isfile(parameters_path):
         print "Error loading state from " + import_path + "."
         exit()
@@ -29,6 +32,27 @@ def load_state(import_path):
         p.N = int(p.N)
 
         p.start_step = p.step + 1
+
+
+def replay(import_path):
+
+    print "Replaying simulation from:"
+    print import_path
+    print ""
+
+    # Search and return step* folder inside import_path (e.g. step100, step200, step300 etc), ordered by number
+    steps_paths = sorted(glob.glob(os.path.join(import_path, "step*")), key=lambda name: int(name.replace(import_path, "").replace("step", "")))
+
+    if len(steps_paths) == 0:
+        print "There is no step* folder to replay from."
+        exit()
+    else:
+        for step_path in steps_paths:
+            load_state(os.path.join(step_path))
+            p.load_parameters_post()
+            p.STEPS = p.start_step
+            p.realtimePlot = True
+            main_loop.main_loop(p.current_matrix)
 
 def list_saved_states():
 

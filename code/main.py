@@ -11,16 +11,24 @@ p.load_parameters_pre()
 # Function to list saved states
 #saved_states.list_saved_states()
 
-# Load parameters differently, depending if it was a new simulation, or loading from a saved state
-if not p.load_saved_state:
+if p.simulation_mode == 'new':
+
     # Load default parameters
     p.load_default_parameters()
     matrix_initialization.matrix_initialization()
-else: # Or load parameters from saved state
+    # Calculate some derivatives parameters
+    p.load_parameters_post()
+    # Run the simulation per se
+    main_loop.main_loop(p.current_matrix)
+
+elif p.simulation_mode == 'load': # Or load parameters from saved state
+
     saved_states.load_state(p.saved_state_path)
+    # Calculate some derivatives parameters
+    p.load_parameters_post()
+    main_loop.main_loop(p.current_matrix)
 
-# Calculate some derivatives parameters
-p.load_parameters_post()
+elif p.simulation_mode == 'replay':
 
-# Run the simulation per se
-main_loop.main_loop(p.current_matrix)
+    # Replay simulation
+    saved_states.replay(p.saved_state_path)

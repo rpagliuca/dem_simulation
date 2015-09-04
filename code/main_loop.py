@@ -102,4 +102,6 @@ def main_loop(current_matrix):
 
         print 'Done step ', str(step), '.' 
 
+    plt.clf()
+    
     print 'Finished solving steps...'
