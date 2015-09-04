@@ -8,9 +8,7 @@ import os
 
 def apply_forces(current_matrix):
 
-    # Apply "loop" forces -- forces that depend on the neighbours of the particle
-
-    # Multi core
+    # Using multicores, we apply forces that depend on the neighbours of the particle (we must loop through them all)
     n_split = int(np.floor(p.N/p.number_of_cores))
     joblib.Parallel(n_jobs=p.number_of_cores, max_nbytes=None)( # Multi core
         joblib.delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
@@ -26,7 +24,7 @@ def apply_forces(current_matrix):
 
 def loop_forces(current_matrix, start_index = False, end_index = False):
 
-    # This function HAS to receive a sorted matrix based on Y position, if not, it will return the wrong results
+    # This function MUST receive a previously sorted matrix based on Y position; failing to do so, it will return the wrong results
 
     # Default indices
     if not start_index:
