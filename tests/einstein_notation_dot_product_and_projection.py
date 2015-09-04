@@ -1,3 +1,5 @@
+# This is a short script to test the result of Einstein notation
+
 #radial_unitary_vector = np.array([[np.sqrt(0.5), np.sqrt(0.5)], [np.sqrt(0.5), np.sqrt(0.5)], [np.sqrt(0.5), np.sqrt(0.5)]])
 radial_unitary_vector = np.array([[0, 1], [0, 1], [0, 1]])
 current_matrix[i, VX:VY+1] = np.array((2., 4.))
