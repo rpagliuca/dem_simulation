@@ -30,7 +30,8 @@ def main_loop(current_matrix):
         plt.text(0.7*xf,0.81*yf, 'E_TILDE = ' + str(p.E_TILDE))
         plt.text(0.7*xf,0.78*yf, 'GAMMA_R = ' + str(p.GAMMA_R))
         plt.text(0.7*xf,0.75*yf, 'GBPM_GAMMA = ' + str(p.GBPM_GAMMA))
-        plt.text(0.7*xf,0.72*yf, 'N = ' + str(p.N))
+        plt.text(0.7*xf,0.72*yf, 'N_PARTICLES = ' + str(p.N_PARTICLES))
+        plt.text(0.7*xf,0.69*yf, 'N_WALL = ' + str(p.N_WALL))
 
     print 'Beggining solving steps...'
 

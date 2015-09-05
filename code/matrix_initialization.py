@@ -12,7 +12,8 @@ def matrix_initialization():
     print 'Beggining matrix initialization...'
 
     dye_profile.init()
-    p.N = p.DESIRED_N_PARTICLES + dye_profile.calculateN() # Number of grains
+    p.N_WALL = dye_profile.calculateN() # Number of particles needed for the walls
+    p.N = p.DESIRED_N_PARTICLES + p.N_WALL # Number of grains for initial matrix
 
     # Initializing matrices
     EMPTY_MATRIX = np.zeros((p.N, p.DIMENSIONS*3. + 3.)) # Each matrix has 2 dimensions x 3 types of values (p.X, p.Y, Vp.X, VY, Fp.X, FY) plus additional columns: p.Mass (M), Type (T) and Wall type (p.WT)

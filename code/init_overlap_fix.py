@@ -42,6 +42,7 @@ def init_overlap_fix(current_matrix):
 
     current_matrix = np.delete(current_matrix, to_be_removed, 0)
     p.N = len(current_matrix) # update the global variable N, which holds the total of particles
+    p.N_PARTICLES = p.N - p.N_WALL
 
     print ""
     print 'A total of ' + str(len(to_be_removed)) + ' overlapping particles were removed from simulation.'
