@@ -18,7 +18,7 @@ def main_loop(current_matrix):
         plt.show()
         # Original limits
         x0 = 0; xf = 2*p.SL+p.DL; xl = xf-x0
-        y0 = -p.DH; yf = p.SH_MULTIPLICATOR * p.SH; yl = yf-y0
+        y0 = -p.DH*3; yf = p.SH_MULTIPLICATOR * p.SH; yl = yf-y0
         # Limits with a little margin
         margin = 0.05
         x0 = x0 - margin*xl; xf = xf + margin*xl;

@@ -2,12 +2,13 @@
 #-*- coding: utf-8 -*-
 
 import numpy as np
+import matrix_initialization
 import time
 import os
 
 def load_parameters_pre():
 
-    global simulation_mode, stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
+    global DESIRED_N_PARTICLES, simulation_mode, stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
 
     # Reproduce random results for debugging
     np.random.seed(1)
@@ -16,10 +17,10 @@ def load_parameters_pre():
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
-    simulation_mode = 'load' # simulation_mode can be 'new', 'load' or 'replay'
+    simulation_mode = 'new' # simulation_mode can be 'new', 'load' or 'replay'
     #saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/step60000' # Used for both 'load' and 'replay' modes
     saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/' # Used for both 'load' and 'replay' modes
-    realtimePlot = False
+    realtimePlot = True
     stepPlotFlag = True
     stepPlotSteps = 50
 
@@ -43,23 +44,13 @@ def load_parameters_pre():
 # Default parameters for new simulations
 def load_default_parameters():
 
-    global shoe_velocity, start_step, SH, SH_MULTIPLICATOR, SL, DH, DL, RADIUS, scatterPlotPointSize, NUMBER_PARTICLES_BOTTOM_WALL, NUMBER_PARTICLES_SIDE_WALL, NUMBER_PARTICLES_DYE_BOTTOM_WALL, NUMBER_PARTICLES_DYE_SIDE_WALL, N, MASS, MU, MU_A, KAPPA_R, MU_W, E_TILDE, GAMMA_R, GBPM_GAMMA, WALL_MASS, T0, STEPS, DT, SAVE_ENABLED, SAVE_SESSION_STEP_INTERVAL, SAVE_SESSION_OUTPUT_PATH, SAVE_SESSION_DIFFERENT_FILE_PER_STEP
+    global DESIRED_N_PARTICLES, shoe_velocity, start_step, SH, SH_MULTIPLICATOR, SL, DH, DL, RADIUS, scatterPlotPointSize, NUMBER_PARTICLES_BOTTOM_WALL, NUMBER_PARTICLES_SIDE_WALL, NUMBER_PARTICLES_DYE_BOTTOM_WALL, NUMBER_PARTICLES_DYE_SIDE_WALL, N, MASS, MU, MU_A, KAPPA_R, MU_W, E_TILDE, GAMMA_R, GBPM_GAMMA, WALL_MASS, T0, STEPS, DT, SAVE_ENABLED, SAVE_SESSION_STEP_INTERVAL, SAVE_SESSION_OUTPUT_PATH, SAVE_SESSION_DIFFERENT_FILE_PER_STEP
 
     # Initial shoe velocity
     shoe_velocity = 0.0
 
+    # Start on step 1 for new simulations
     start_step = 1
-
-    # Shoe dimensions
-    SH = 5.E-2 # shoe height (in m)
-    # Multiplicator for random generation
-    SH_MULTIPLICATOR = 2.
-    #L = 4.E-2 # dye length (in m)
-    SL = SH # show lengths (in m)
-
-    # Dye dimensions
-    DH = 2.E-2
-    DL = DH
 
     # Particle size
     RADIUS = 8.E-4/4. # Radius of each grain --- (m)
@@ -95,13 +86,7 @@ def load_default_parameters():
     STEPS = 20000 # Number of steps --- (integer)
     DT = 1.E-4/4.
 
-    # Number of particles needed to represent the dye (they overlap a little bit ~ 1.6 instead of 2)
-    NUMBER_PARTICLES_BOTTOM_WALL = np.ceil(SL/(RADIUS*1.6))
-    NUMBER_PARTICLES_SIDE_WALL = np.ceil(SH/(RADIUS*1.6))
-    NUMBER_PARTICLES_DYE_BOTTOM_WALL = np.ceil(DL/(RADIUS*1.6))
-    NUMBER_PARTICLES_DYE_SIDE_WALL = np.ceil(DH/(RADIUS*1.6))
-
-    N = DESIRED_N_PARTICLES + int(2*NUMBER_PARTICLES_BOTTOM_WALL + 2*NUMBER_PARTICLES_SIDE_WALL + NUMBER_PARTICLES_DYE_BOTTOM_WALL + 2*NUMBER_PARTICLES_DYE_SIDE_WALL) # Number of grains
+    N = 0 # Updated on matrix_initialization.py to hold the total number of particles
 
     # Save parameters
     SAVE_ENABLED = False
