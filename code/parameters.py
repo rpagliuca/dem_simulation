@@ -16,12 +16,12 @@ def load_parameters_pre():
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
-    simulation_mode = 'replay' # simulation_mode can be 'new', 'load' or 'replay'
+    simulation_mode = 'load' # simulation_mode can be 'new', 'load' or 'replay'
     #saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/step60000' # Used for both 'load' and 'replay' modes
     saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/' # Used for both 'load' and 'replay' modes
-    realtimePlot = True
+    realtimePlot = False
     stepPlotFlag = True
-    stepPlotSteps = 10
+    stepPlotSteps = 50
 
     # Physical and math constants
     G = 9.81 # gravity
