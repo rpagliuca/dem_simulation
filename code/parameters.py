@@ -18,10 +18,11 @@ def load_parameters_pre():
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
-    simulation_mode = 'load' # simulation_mode can be 'new', 'load' or 'replay'
-    saved_state_path = '../output/20150905T232510_simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3812' # Used for both 'load' and 'replay' modes
+    simulation_mode = 'new' # simulation_mode can be 'new', 'load' or 'replay'
+    # Path of the saved state, Used for both 'load' and 'replay' modes
+    saved_state_path = '../output/20150905T232510_simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3812'
     realtimePlot = False
-    stepPlotFlag = False
+    stepPlotFlag = True
     stepPlotSteps = 250
 
     # Physical and math constants
@@ -53,7 +54,7 @@ def load_default_parameters():
     start_step = 1
 
     # Particle size
-    RADIUS = 8.E-4/4. # Radius of each grain --- (m)
+    RADIUS = 1.5E-4 # Radius of each grain --- (m)
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # This is the desired number of particles to be simulated
@@ -70,12 +71,13 @@ def load_default_parameters():
     MU_W = 0.15 # --- (dimensionless)
 
     # Repulsion parameters
-    E_TILDE = 16. * 8.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+    E_TILDE = 1.0E7 # Young's modulus / (1 - nu^2) --- (Pa)
 
     # Viscous parameter
-    GAMMA_R = 16 * 2.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
+    GAMMA_R = 1.0E6 # Gamma / R --- (Pa . s/m)
 
-    # Friction parameter
+    # Friction parameter - this parameters is the only one which is not available on Bierwisch et al (2009),
+    # because I have not modelled the friction force force as Cundall, but as Haff and Werner
     GBPM_GAMMA = 4.E-5
 
     # Material of wall
@@ -84,7 +86,7 @@ def load_default_parameters():
     # Misc parameters
     T0 = 0. # Initial time --- (s)
     STEPS = 200000 # Number of steps --- (integer)
-    DT = 1.E-4/16.
+    DT = 1.9E-6 
 
     N = 0 # Updated on matrix_initialization.py to hold the total number of particles
 
