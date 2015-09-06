@@ -13,7 +13,7 @@ def main_loop(current_matrix):
 
 # Initializing matplotlib scatter plot data
     if p.realtimePlot or p.stepPlotFlag:
-        scatterPoints = None
+        scatterPointsParticles = None
         plt.ion()
         plt.show()
         # Original limits
@@ -65,7 +65,7 @@ def main_loop(current_matrix):
         current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
 
         # Move shoe horizontally
-        if (time == 0.1):
+        if (time >= 0.15):
             p.shoe_velocity = 0.2
         current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
 
@@ -78,10 +78,12 @@ def main_loop(current_matrix):
             plotNow = False
 
         if plotNow:
-            if scatterPoints:
-                scatterPoints.remove()
+            if scatterPointsParticles:
+                scatterPointsParticles.remove()
+                scatterPointsWall.remove()
                 text.remove()
-            scatterPoints = plt.scatter(current_matrix[:, p.X], current_matrix[:,p.Y], s=p.scatterPlotPointSize, facecolors='none')
+            scatterPointsParticles = plt.scatter(current_matrix[current_matrix[:,p.T] == 1, p.X], current_matrix[current_matrix[:, p.T] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none')
+            scatterPointsWall = plt.scatter(current_matrix[current_matrix[:, p.T] == 0, p.X], current_matrix[current_matrix[:, p.T] == 0, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
             text = plt.text(0.7*xf,0.9*yf, 'Time: ' + format(time, '.5f') + 's of ' + format(p.TF, '.5f') + 's')
             plt.draw()
             plt.pause(1.0E-10)
@@ -96,7 +98,7 @@ def main_loop(current_matrix):
                 os.makedirs(output_path)
 
             # Unify all parameters into a numpy array
-            parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE])
+            parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES])
 
             np.savetxt(output_path + "/current_matrix.txt", current_matrix)
             np.savetxt(output_path + "/parameters.txt", parameters)

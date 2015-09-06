@@ -13,6 +13,7 @@ def matrix_initialization():
 
     dye_profile.init()
     p.N_WALL = dye_profile.calculateN() # Number of particles needed for the walls
+    print p.N_WALL
     p.N = p.DESIRED_N_PARTICLES + p.N_WALL # Number of grains for initial matrix
 
     # Initializing matrices

@@ -5,6 +5,7 @@ import numpy as np
 import matrix_initialization
 import time
 import os
+import datetime
 
 def load_parameters_pre():
 
@@ -17,12 +18,11 @@ def load_parameters_pre():
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
     # Flags
-    simulation_mode = 'new' # simulation_mode can be 'new', 'load' or 'replay'
-    #saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/step60000' # Used for both 'load' and 'replay' modes
-    saved_state_path = '/home/rsantos/Desktop/simulacao_dem/output/simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3389/' # Used for both 'load' and 'replay' modes
-    realtimePlot = True
-    stepPlotFlag = True
-    stepPlotSteps = 50
+    simulation_mode = 'load' # simulation_mode can be 'new', 'load' or 'replay'
+    saved_state_path = '../output/20150905T232510_simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3812' # Used for both 'load' and 'replay' modes
+    realtimePlot = False
+    stepPlotFlag = False
+    stepPlotSteps = 250
 
     # Physical and math constants
     G = 9.81 # gravity
@@ -37,7 +37,7 @@ def load_parameters_pre():
     FX = 4 # Force x-component
     FY = 5 # Force y-component
     M = 6 # Mass
-    T = 7 # Type (particle -> 1, wall -> 0, conflicting particles to be removed on initialization overlap fix -> 9)
+    T = 7 # Type (particle -> 1, wall -> 0)
     WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)
     DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
 
@@ -70,10 +70,10 @@ def load_default_parameters():
     MU_W = 0.15 # --- (dimensionless)
 
     # Repulsion parameters
-    E_TILDE = 8.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
+    E_TILDE = 16. * 8.0E32 * 1.0E-30 # Young's modulus / (1 - nu^2) --- (Pa)
 
     # Viscous parameter
-    GAMMA_R = 2.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
+    GAMMA_R = 16 * 2.0E-4 * 1.0E6 # Gamma / R --- (Pa . s/m)
 
     # Friction parameter
     GBPM_GAMMA = 4.E-5
@@ -83,29 +83,32 @@ def load_default_parameters():
 
     # Misc parameters
     T0 = 0. # Initial time --- (s)
-    STEPS = 20000 # Number of steps --- (integer)
-    DT = 1.E-4/4.
+    STEPS = 200000 # Number of steps --- (integer)
+    DT = 1.E-4/16.
 
     N = 0 # Updated on matrix_initialization.py to hold the total number of particles
 
     # Save parameters
-    SAVE_ENABLED = False
-    SAVE_SESSION_STEP_INTERVAL = 100 # Number of steps between saving session
+    SAVE_ENABLED = True
+    SAVE_SESSION_STEP_INTERVAL = 500 # Number of steps between saving session
     SAVE_SESSION_OUTPUT_PATH = "../output/"
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 
 def load_parameters_post():
 
-    global TF, EFFECTIVE_RADIUS, SAVE_SESSION_OUTPUT_PATH
+    global simulation_mode, TF, EFFECTIVE_RADIUS, SAVE_SESSION_OUTPUT_PATH
 
     # Derivative constants
     TF = T0 + STEPS*DT
     EFFECTIVE_RADIUS = (RADIUS*RADIUS)/(RADIUS+RADIUS)
 
     # Define output filename of simulation
-    filename =  "simulation_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
-    if SAVE_ENABLED:
+    if simulation_mode == 'new':
+        data = datetime.datetime.now().isoformat()
+        data = data[0:19].replace(':', '').replace('-', '')
+        filename =  data + "_simulation_RADIUS" + str(RADIUS) + "_DT" + str(DT) + "_ETILDE" + str(E_TILDE) + "_GAMMAR" + str(GAMMA_R) + "_GBPMGAMMA" + str(GBPM_GAMMA) + "_N" + str(N)
         SAVE_SESSION_OUTPUT_PATH = os.path.join(SAVE_SESSION_OUTPUT_PATH, filename)
-        if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
-            print("Output path already exists. Exiting...")
-            exit()
+        if SAVE_ENABLED:
+            if os.path.exists(SAVE_SESSION_OUTPUT_PATH):
+                print("Output path already exists. Exiting...")
+                exit()

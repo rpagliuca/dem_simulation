@@ -99,4 +99,6 @@ def draw(current_matrix):
     # Flag particles as type 0 (wall particle)
     current_matrix[0:endPos, p.T] = 0
 
+    print endPos 
+
     return current_matrix
