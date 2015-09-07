@@ -5,6 +5,7 @@ import numpy as np
 import matrix_initialization
 import time
 import os
+import sys
 import datetime
 
 def load_parameters_pre():
@@ -17,12 +18,20 @@ def load_parameters_pre():
     # Multicore
     number_of_cores = 8 # Used if multicore/multithreaded simulation enabled on forces.py
 
+    # Read some parameters from command line
+    if len(sys.argv) >= 3:
+        # path of the saved state, Used for both 'load' and 'replay' modes
+        saved_state_path = sys.argv[2]
+    if len(sys.argv) >= 2:
+        # simulation_mode can be 'new', 'load' or 'replay'
+        simulation_mode = sys.argv[1]
+    else:
+        print "Usage: python " + sys.argv[0] + " [new|load|replay] <import_path>"
+        exit()
+
     # Flags
-    simulation_mode = 'new' # simulation_mode can be 'new', 'load' or 'replay'
-    # Path of the saved state, Used for both 'load' and 'replay' modes
-    saved_state_path = '../output/20150905T232510_simulation_RADIUS0.0002_DT6.25e-06_ETILDE12800.0_GAMMAR3200.0_GBPMGAMMA4e-05_N3812'
     realtimePlot = False
-    stepPlotFlag = True
+    stepPlotFlag = False
     stepPlotSteps = 250
 
     # Physical and math constants
