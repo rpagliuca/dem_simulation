@@ -10,7 +10,7 @@ import datetime
 
 def load_parameters_pre():
 
-    global DESIRED_N_PARTICLES, simulation_mode, stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
+    global min_x, min_y, max_x, max_y, DESIRED_N_PARTICLES, simulation_mode, stepPlotFlag, stepPlotSteps, number_of_cores, saved_state_path, realtimePlot, stepPlotFlag, lastPlotFlag, G, PI, INFINITY, X, Y, VX, VY, FX, FY, M, T, WT, DIMENSIONS
 
     # Reproduce random results for debugging
     np.random.seed(1)
@@ -30,7 +30,7 @@ def load_parameters_pre():
         exit()
 
     # Default flags
-    realtimePlot = False # realtimePlot will slow down simulation, but gives a nice feedback
+    realtimePlot = True # realtimePlot will slow down simulation, but gives a nice feedback
     stepPlotFlag = False # Use with stepPlotSteps to plot every X steps
     stepPlotSteps = 250
 
@@ -50,6 +50,11 @@ def load_parameters_pre():
     T = 7 # Type (particle -> 1, wall -> 0)
     WT = 8 # Detailed type for walls (0 -> movable, 1 -> fixed)
     DIMENSIONS = 2. # Number of degrees of freedoms (x,y => 2; x,y,z =>3)
+
+    min_x = 0
+    max_x = 0
+    min_y = 0
+    max_y = 0
 
 # Default parameters for new simulations
 def load_default_parameters():

@@ -17,8 +17,10 @@ def main_loop(current_matrix):
         plt.ion()
         plt.show()
         # Original limits
-        x0 = 0; xf = 2*p.SL+p.DL; xl = xf-x0
-        y0 = -p.DH*3; yf = p.SH_MULTIPLICATOR * p.SH; yl = yf-y0
+        print p.max_x
+        print p.max_y
+        x0 = p.min_x; xf = p.max_x; xl = xf-x0
+        y0 = p.min_y; yf = p.max_y; yl = yf-y0
         # Limits with a little margin
         margin = 0.05
         x0 = x0 - margin*xl; xf = xf + margin*xl;
@@ -80,10 +82,12 @@ def main_loop(current_matrix):
         if plotNow:
             if scatterPointsParticles:
                 scatterPointsParticles.remove()
-                scatterPointsWall.remove()
+                scatterPointsWall1.remove()
+                scatterPointsWall2.remove()
                 text.remove()
             scatterPointsParticles = plt.scatter(current_matrix[current_matrix[:,p.T] == 1, p.X], current_matrix[current_matrix[:, p.T] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none')
-            scatterPointsWall = plt.scatter(current_matrix[current_matrix[:, p.T] == 0, p.X], current_matrix[current_matrix[:, p.T] == 0, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
+            scatterPointsWall1 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 1, p.X], current_matrix[current_matrix[:, p.WT] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
+            scatterPointsWall2 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 2, p.X], current_matrix[current_matrix[:, p.WT] == 2, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='red')
             text = plt.text(0.7*xf,0.9*yf, 'Time: ' + format(time, '.5f') + 's of ' + format(p.TF, '.5f') + 's')
             plt.draw()
             plt.pause(1.0E-10)
