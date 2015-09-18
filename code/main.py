@@ -9,9 +9,12 @@ import parameters as p
 p.load_parameters_pre()
 
 # Function to list saved states
-#saved_states.list_saved_states()
 
-if p.simulation_mode == 'new':
+if p.simulation_mode == 'list':
+
+    saved_states.list_saved_states(p.saved_state_path)
+
+elif p.simulation_mode == 'new':
 
     # Load default parameters
     p.load_default_parameters()

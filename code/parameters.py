@@ -26,12 +26,12 @@ def load_parameters_pre():
         # simulation_mode can be 'new', 'load' or 'replay'
         simulation_mode = sys.argv[1]
     else:
-        print "Usage: python " + sys.argv[0] + " [new|load|replay] <import_path>"
+        print "Usage: python " + sys.argv[0] + " [new|load|replay|list] <import_path>"
         exit()
 
-    # Flags
-    realtimePlot = False
-    stepPlotFlag = False
+    # Default flags
+    realtimePlot = False # realtimePlot will slow down simulation, but gives a nice feedback
+    stepPlotFlag = False # Use with stepPlotSteps to plot every X steps
     stepPlotSteps = 250
 
     # Physical and math constants
