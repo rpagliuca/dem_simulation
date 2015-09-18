@@ -67,8 +67,8 @@ def main_loop(current_matrix):
         current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
 
         # Move shoe horizontally
-        if (time >= 0.15):
-            p.shoe_velocity = 0.2
+        if (time >= 0.2):
+            p.shoe_velocity = 0.09
         current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
 
         # Calculate position from force and velocity
