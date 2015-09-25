@@ -4,6 +4,7 @@ import matrix_initialization
 import main_loop
 import saved_states
 import parameters as p
+import post_analysis_density
 
 # Define some basic constants and parameters shared between new and saved simulations
 p.load_parameters_pre()
@@ -35,3 +36,8 @@ elif p.simulation_mode == 'replay':
 
     # Replay simulation
     saved_states.replay(p.saved_state_path)
+
+elif p.simulation_mode == 'density':
+
+    # Replay simulation
+    post_analysis_density.post_analysis_density(p.saved_state_path)

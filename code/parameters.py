@@ -30,9 +30,9 @@ def load_parameters_pre():
         exit()
 
     # Default flags
-    realtimePlot = True # realtimePlot will slow down simulation, but gives a nice feedback
+    realtimePlot = False # realtimePlot will slow down simulation, but gives a nice feedback
     stepPlotFlag = False # Use with stepPlotSteps to plot every X steps
-    stepPlotSteps = 250
+    stepPlotSteps = 100
 
     # Physical and math constants
     G = 9.81 # gravity
@@ -72,7 +72,7 @@ def load_default_parameters():
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # This is the desired number of particles to be simulated
-    DESIRED_N_PARTICLES = 3000
+    DESIRED_N_PARTICLES = 10000
     # Note: the real number of simulated particles (N) will vary. It is the sum of the DESIRED_N_PARTICLES, with the number of particles needed to create the walls of the dye, and the subtraction of the conflicting overlapped particles that will be excluded from simulation after random generation
 
     # Simulation parameters taken from BIRWISCH et al., 2009
@@ -99,14 +99,14 @@ def load_default_parameters():
 
     # Misc parameters
     T0 = 0. # Initial time --- (s)
-    STEPS = 200000 # Number of steps --- (integer)
+    STEPS = 2000000 # Number of steps --- (integer)
     DT = 1.9E-6 
 
     N = 0 # Updated on matrix_initialization.py to hold the total number of particles
 
     # Save parameters
     SAVE_ENABLED = True
-    SAVE_SESSION_STEP_INTERVAL = 500 # Number of steps between saving session
+    SAVE_SESSION_STEP_INTERVAL = 1000 # Number of steps between saving session
     SAVE_SESSION_OUTPUT_PATH = "../output/"
     SAVE_SESSION_DIFFERENT_FILE_PER_STEP = True # Set if you want to progressively export the simulation state
 

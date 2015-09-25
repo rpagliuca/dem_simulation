@@ -32,7 +32,7 @@ def load_state(import_path, child_import = False, print_messages = True):
     else:
         p.current_matrix = np.loadtxt(current_matrix_path)
         try:
-            p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, p.step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES = np.loadtxt(parameters_path, unpack = True)
+            p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, p.step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES, p.min_x, p.min_y, p.max_x, p.max_y = np.loadtxt(parameters_path, unpack = True)
         except:
             if print_messages:
                 print "Error: Unknown format for parameter.txt file."
@@ -64,7 +64,7 @@ def replay(import_path):
         step_number = 0
         for step_path in steps_paths:
             step_number += 1
-            if step_number % 10 == 0: # Load every X step
+            if step_number % 3 == 0: # Load every X saved state
                 load_state(os.path.join(step_path))
                 p.load_parameters_post()
                 p.STEPS = p.start_step

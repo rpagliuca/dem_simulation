@@ -52,27 +52,29 @@ def main_loop(current_matrix):
 
         time = p.T0 + (step-1)*p.DT
 
-        # First, we sort by y position to optimize contact forces
-        current_matrix[:,:] = current_matrix[current_matrix[:,p.Y].argsort()]
+        if p.simulation_mode != 'replay':
 
-        # Store current matrix as last matrix
-        last_matrix = np.copy(current_matrix)
+            # First, we sort by y position to optimize contact forces
+            current_matrix[:,:] = current_matrix[current_matrix[:,p.Y].argsort()]
 
-        # Reset matrix of forces
-        current_matrix[:,p.FX:p.FY+1] = np.zeros((p.N,p.DIMENSIONS))
+            # Store current matrix as last matrix
+            last_matrix = np.copy(current_matrix)
 
-        current_matrix[:,:] = forces.apply_forces(current_matrix)
+            # Reset matrix of forces
+            current_matrix[:,p.FX:p.FY+1] = np.zeros((p.N,p.DIMENSIONS))
 
-        # Calculate velocities from force
-        current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
+            current_matrix[:,:] = forces.apply_forces(current_matrix)
 
-        # Move shoe horizontally
-        if (time >= 0.2):
-            p.shoe_velocity = 0.09
-        current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
+            # Calculate velocities from force
+            current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
 
-        # Calculate position from force and velocity
-        current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
+            # Move shoe horizontally
+            if (time >= 0.2):
+                p.shoe_velocity = 0.09
+            current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
+
+            # Calculate position from force and velocity
+            current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
 
         if p.realtimePlot or (p.stepPlotFlag and step % p.stepPlotSteps == 0):
             plotNow = True
@@ -90,7 +92,7 @@ def main_loop(current_matrix):
             scatterPointsWall2 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 2, p.X], current_matrix[current_matrix[:, p.WT] == 2, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='red')
             text = plt.text(0.7*xf,0.9*yf, 'Time: ' + format(time, '.5f') + 's of ' + format(p.TF, '.5f') + 's')
             plt.draw()
-            plt.pause(1.0E-10)
+            plt.pause(1.0E-1)
 
         if p.SAVE_ENABLED and step % p.SAVE_SESSION_STEP_INTERVAL == 0:
             output_path = p.SAVE_SESSION_OUTPUT_PATH
@@ -102,7 +104,7 @@ def main_loop(current_matrix):
                 os.makedirs(output_path)
 
             # Unify all parameters into a numpy array
-            parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES])
+            parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES, p.min_x, p.min_y, p.max_x, p.max_y ])
 
             np.savetxt(output_path + "/current_matrix.txt", current_matrix)
             np.savetxt(output_path + "/parameters.txt", parameters)
