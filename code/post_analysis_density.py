@@ -26,16 +26,15 @@ def post_analysis_density(import_path):
     dye_region = dye_profile.get_dye_region()
 
     # Ignore points if outside dye area
-    x_min = max(x_min, dye_region['x_min'])
-    x_max = min(x_max, dye_region['x_max'])
-    y_min = max(y_min, dye_region['y_min'])
-    y_max = min(y_max, dye_region['y_max'])
+    #x_min = max(x_min, dye_region['x_min'])
+    #x_max = min(x_max, dye_region['x_max'])
+    #y_min = max(y_min, dye_region['y_min'])
 
-    x_min = 0.051
-    x_max = 0.053
-    y_min = -0.014
+    #x_min = 0.051
+    #x_max = 0.053
+    #y_min = -0.014
 
-    cell_width = cell_height = 0.1 * p.RADIUS*2.0
+    cell_width = cell_height = 0.5 * p.RADIUS*2.0
     num_x = int(np.ceil((x_max - x_min)/cell_width))
     num_y = int(np.ceil((y_max - y_min)/cell_height))
 
@@ -51,11 +50,8 @@ def post_analysis_density(import_path):
         for j in range(0, num_y):
             cell_x = x_min + i*cell_width
             cell_y = y_min + j*cell_height
-            distances = np.square(p.current_matrix[p.current_matrix[:, p.T] == 1, p.X:p.Y+1] - np.matrix([cell_x, cell_y]))
-            p.current_matrix[p.current_matrix[:, p.T] == 1, p.VX] = np.sqrt(distances[:, 0] + distances[:, 1]).transpose()
-            #print p.current_matrix[p.current_matrix[:, p.T] == 1, p.X:p.Y+1].shape, np.matrix([cell_x, cell_y]).shape
-            #print cell_x, cell_y, p.current_matrix[0, p.X], p.current_matrix[0, p.Y], p.current_matrix[0, p.VX]
-            #print cell_x, cell_y, p.current_matrix[0, p.X], p.current_matrix[0, p.Y], ((p.current_matrix[0, p.X]-cell_x)**2 + (p.current_matrix[0, p.Y]-cell_y)**2.0)**0.5
+            distances = np.square(p.current_matrix[:, p.X:p.Y+1] - np.matrix([cell_x, cell_y]))
+            p.current_matrix[:, p.VX] = np.sqrt(distances[:, 0] + distances[:, 1]).transpose()
             # Now we sort by distance (here called VX)
             p.current_matrix[:,:] = p.current_matrix[p.current_matrix[:,p.VX].argsort()]
             # The first particle after sorting will have an increment on the number of owned cells
@@ -74,6 +70,6 @@ def post_analysis_density(import_path):
     y0 = y_min - margin*yl; yf = y_max + margin*yl;
     plt.axis([x0, xf, y0, yf])
     plt.axes().set_aspect('equal')
-    sc = plt.scatter(p.current_matrix[p.current_matrix[:,p.T] == 1, p.X], p.current_matrix[p.current_matrix[:, p.T] == 1, p.Y], c=p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY], s=50, linewidth=0, cmap=plt.cm.summer)
+    sc = plt.scatter(p.current_matrix[p.current_matrix[:,p.T] == 1, p.X], p.current_matrix[p.current_matrix[:, p.T] == 1, p.Y], c=np.pi*(p.RADIUS)**2.0/(p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY]*cell_width*cell_height), s=50, linewidth=0, cmap=plt.cm.summer_r)
     plt.colorbar(sc)
     plt.show()
