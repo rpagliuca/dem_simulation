@@ -2,6 +2,9 @@ import numpy as np
 import parameters as p
 
 def init():
+
+    global is_dye_region, dye_region
+
     # Shoe dimensions
     p.SH = 5.E-2 # shoe height (in m)
     # Multiplicator for random generation
@@ -11,6 +14,9 @@ def init():
     # Dye dimensions
     p.DH = 15.E-3
     p.DL = 25.E-3
+
+    is_dye_region = False
+    dye_region = {'x_min': p.INFINITY, 'x_max': -p.INFINITY, 'y_min': p.INFINITY, 'y_max': -p.INFINITY} # xmin, xmax, ymin, ymax of the actual dye region -> used for density calculation
 
 def calculateN():
     global endPos
@@ -30,6 +36,8 @@ def draw(current_matrix, calculateN = False):
     draw_line(0, 0, 0, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
     # Shoe Right wall (movable wall)
     draw_line(p.SL, 0, p.SL, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
+
+    begin_dye_region() 
     # Dye Left Wall
     draw_line(p.SL, 0, p.SL, -p.DH, current_matrix, 1, calculateN)
     # Dye Right Wall
@@ -48,6 +56,7 @@ def draw(current_matrix, calculateN = False):
     draw_line(p.SL + p.DL - 10.0E-3, -p.DH/2.0, p.SL + p.DL - 10.0E-3, 0, current_matrix, 1, calculateN)
     # Dye Step 2 Top
     draw_line(p.SL + 10.0E-3, 0, p.SL + p.DL - 10.0E-3, 0, current_matrix, 1, calculateN)
+    end_dye_region()
 
     if not calculateN:
         # Common properties for wall particles
@@ -58,7 +67,7 @@ def draw(current_matrix, calculateN = False):
 
 def draw_line(x0, y0, xf, yf, current_matrix, wall_type, calculateN):
 
-    global endPos
+    global endPos, is_dye_region, dye_region
 
     # Calculate length of line and define number of particles needed
     number_particles = np.ceil((((x0-xf)**2 + (y0-yf)**2)**0.5)/(p.RADIUS*1.6))
@@ -89,3 +98,34 @@ def draw_line(x0, y0, xf, yf, current_matrix, wall_type, calculateN):
             p.max_y = y0
         if yf > p.max_y:
             p.max_y = yf
+
+    # Update dye region
+    if is_dye_region:
+        if x0 < dye_region['x_min']:
+            dye_region['x_min'] = x0
+        if xf < dye_region['x_min']:
+            dye_region['x_min'] = xf
+        if x0 > dye_region['x_max']:
+            dye_region['x_max'] = x0
+        if xf > dye_region['x_max']:
+            dye_region['x_max'] = xf
+        if y0 < dye_region['y_min']:
+            dye_region['y_min'] = y0
+        if yf < dye_region['y_min']:
+            dye_region['y_min'] = yf
+        if y0 > dye_region['y_max']:
+            dye_region['y_max'] = y0
+        if yf > dye_region['y_max']:
+            dye_region['y_max'] = yf
+
+def begin_dye_region():
+    global is_dye_region
+    is_dye_region = True
+
+def end_dye_region():
+    global is_dye_region
+    is_dye_region = False
+
+def get_dye_region():
+    global dye_region
+    return dye_region

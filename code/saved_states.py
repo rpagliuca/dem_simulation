@@ -64,7 +64,7 @@ def replay(import_path):
         step_number = 0
         for step_path in steps_paths:
             step_number += 1
-            if step_number % 3 == 0: # Load every X saved state
+            if step_number % 5 == 0: # Load every X saved state
                 load_state(os.path.join(step_path))
                 p.load_parameters_post()
                 p.STEPS = p.start_step
