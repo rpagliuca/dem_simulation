@@ -34,7 +34,7 @@ def post_analysis_density(import_path):
     x_max = 0.060
     y_min = -0.014
 
-    cell_width = cell_height = 5.0 * p.RADIUS * 2.0
+    cell_width = cell_height = 0.5 * p.RADIUS * 2.0
     num_x = int(np.ceil((x_max - x_min)/cell_width))
     num_y = int(np.ceil((y_max - y_min)/cell_height))
 
@@ -72,25 +72,27 @@ def post_analysis_density(import_path):
     plt.axes().set_aspect('equal')
     sc = plt.scatter(p.current_matrix[p.current_matrix[:,p.T] == 1, p.X], p.current_matrix[p.current_matrix[:, p.T] == 1, p.Y], c=(np.pi*(p.RADIUS)**2.0/(p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY]*cell_width*cell_height))**0.5, s=50, linewidth=0, cmap=plt.cm.hot_r, vmin=0.3, vmax=1.5)
     plt.colorbar(sc)
-    plt.show()
+    #plt.show()
 
-    density = list(list())
+    density = np.zeros((num_x*num_y, 3))
     # 5) Plot Gaussian weighting
     for i in range (0, num_x):
         for j in range(0, num_y):
+            cell_x = x_min + i*cell_width
+            cell_y = y_min + j*cell_height
             distances = np.square(p.current_matrix[:, p.X:p.Y+1] - np.matrix([cell_x, cell_y]))
             p.current_matrix[:, p.VX] = (distances[:, 0] + distances[:, 1]).transpose()
 
             # For sigma/d <= 1/4 density variations are resolved at grain level while larger values of sigma/d yield smoother maps(C. Bierwisch et al. / Powder Technology 196 (2009) p. 170)
             sigma = (p.RADIUS*2.0)*0.5
-            print (np.pi*(p.RADIUS)**2.0/(0.00000000000000000001 + p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY]*cell_width*cell_height))**0.5 * np.exp(-p.current_matrix[p.current_matrix[:, p.T] == 1, p.VX]/(2*sigma**2))
-            exit()
+            density[i*num_x + num_y, :] = np.array((cell_x, cell_y, np.sum((np.pi*(p.RADIUS)**2.0/(0.00000000000000000001 + p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY] * cell_width*cell_height))**0.5 * np.exp(-p.current_matrix[p.current_matrix[:, p.T] == 1, p.VX]/(2.0*sigma**2.0)))/np.sum(np.exp(-p.current_matrix[p.current_matrix[:, p.T] == 1, p.VX]/(2.0*sigma**2.0)))))
+            #print np.exp(-p.current_matrix[p.current_matrix[:, p.T] == 1, p.VX])
 
         # Show progress of calculation
         print float(round(float(i)/float(num_x-1)*1000))/10.0, "%"
 
     plt.axis([x0, xf, y0, yf])
     plt.axes().set_aspect('equal')
-    sc = plt.scatter(p.current_matrix[p.current_matrix[:,p.T] == 1, p.X], p.current_matrix[p.current_matrix[:, p.T] == 1, p.Y], c=(np.pi*(p.RADIUS)**2.0/(p.current_matrix[p.current_matrix[:, p.T] == 1, p.VY]*cell_width*cell_height))**0.5, s=50, linewidth=0, cmap=plt.cm.hot_r, vmin=0.3, vmax=1.5)
+    sc = plt.scatter(density[:,0], density[:,1], c=density[:,2], s=50, linewidth=0, cmap=plt.cm.hot_r)
     plt.colorbar(sc)
     plt.show()
