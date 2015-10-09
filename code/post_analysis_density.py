@@ -11,6 +11,7 @@ import dye_profiles.h as dye_profile
 import matplotlib.pyplot as plt
 import time
 import threading
+import datetime
 
 density_polygon_list = {'x': [], 'y': []} # X, Y
 density_scatter_points = None
@@ -141,6 +142,9 @@ def post_analysis_density(import_path):
     sc = plt.scatter(p.current_matrix[view, p.X][view2], p.current_matrix[view, p.Y][view2], c=dens, s=50, linewidth=0, cmap=plt.cm.rainbow)
     plt.colorbar(sc)
     plt.draw()
+    datestr = datetime.datetime.now().isoformat()
+    datestr = datestr[0:19].replace(':', '').replace('-', '')
+    plt.savefig(os.path.join(import_path, datestr + '_discrete_density_points.png'))
     plt.show()
 
     density = np.zeros((num_x*num_y, 3))
@@ -165,6 +169,7 @@ def post_analysis_density(import_path):
     plt.clf()
     plt.axis([x0, xf, y0, yf])
     plt.axes().set_aspect('equal')
-    sc = plt.scatter(density[:,0], density[:,1], c=density[:,2], s=10, linewidth=0, cmap=plt.cm.hot_r)
+    sc = plt.scatter(density[:,0], density[:,1], c=density[:,2], s=10, linewidth=0, cmap=plt.cm.rainbow)
     plt.colorbar(sc)
+    plt.savefig(os.path.join(import_path, datestr + '_gaussian_density_map.png'))
     plt.show()
