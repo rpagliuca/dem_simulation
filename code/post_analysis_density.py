@@ -144,7 +144,7 @@ def post_analysis_density(import_path):
     plt.draw()
     datestr = datetime.datetime.now().isoformat()
     datestr = datestr[0:19].replace(':', '').replace('-', '')
-    plt.savefig(os.path.join(import_path, datestr + '_discrete_density_points.png'))
+    plt.savefig(os.path.join(import_path, datestr + '_discrete_density_points.pdf'))
     plt.show()
 
     density = np.zeros((num_x*num_y, 3))
