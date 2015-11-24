@@ -124,7 +124,7 @@ def main_loop(current_matrix):
         if p.SAVE_ENABLED and step % p.SAVE_SESSION_STEP_INTERVAL == 0:
             output_path = p.SAVE_SESSION_OUTPUT_PATH
             if (p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP):
-                output_path = os.path.join(output_path, "/step" + str(step))
+                output_path = os.path.join(output_path, "step" + str(step))
 
             print "Saving session to folder " + output_path + "/ ..."
             # Create output folder if not exists
@@ -135,9 +135,9 @@ def main_loop(current_matrix):
             parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES, p.min_x, p.min_y, p.max_x, p.max_y ])
 
             # Export current state to file
-            np.savetxt(os.path.join(output_path, "/current_matrix.txt"), current_matrix)
+            np.savetxt(os.path.join(output_path, "current_matrix.txt"), current_matrix)
             # Export simulation parameters to file
-            np.savetxt(os.path.join(output_path, "/parameters.txt"), parameters)
+            np.savetxt(os.path.join(output_path, "parameters.txt"), parameters)
 
         print 'Done step ', str(step), '.' 
 
