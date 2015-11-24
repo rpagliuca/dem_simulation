@@ -34,7 +34,7 @@ def main_loop(current_matrix):
         main_axes.axis([x0, xf, y0, yf])
         main_axes.set_aspect('equal')
 
-        # Initiate static plot text
+        # Initializate static plot text
         static_text = 'DT = ' + str(p.DT) + "\n"
         static_text += 'RADIUS = ' + str(p.RADIUS) + "\n"
         static_text += 'E_TILDE = ' + str(p.E_TILDE) + "\n"
@@ -95,13 +95,13 @@ def main_loop(current_matrix):
                 scatterPointsParticles.remove()
                 scatterPointsWall1.remove()
                 scatterPointsWall2.remove()
-                #text.remove()
+                text.remove()
             scatterPointsParticles = plt.scatter(current_matrix[current_matrix[:,p.T] == 1, p.X], current_matrix[current_matrix[:, p.T] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none')
             scatterPointsWall1 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 1, p.X], current_matrix[current_matrix[:, p.WT] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
             scatterPointsWall2 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 2, p.X], current_matrix[current_matrix[:, p.WT] == 2, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='red')
 
             # Custom function to export replay plots as pdfs
-            SAVE_PLOT = True
+            SAVE_PLOT = False
             if SAVE_PLOT:
                 plt.gcf().set_size_inches(10, 7)
                 text = main_axes.text(0.95, 0.05, '#' + str(step), horizontalalignment='right', verticalalignment='bottom', size='20', transform=main_axes.transAxes)

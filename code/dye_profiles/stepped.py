@@ -33,9 +33,9 @@ def draw(current_matrix, calculateN = False):
     # Table Bottom Wall 2
     draw_line(p.SL + p.DL, 0, p.SL + p.DL + p.SL, 0, current_matrix, 1, calculateN)
     # Shoe Left wall (movable wall)
-    draw_line(0, 0, 0, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
+    draw_line(0, 2.0*p.RADIUS, 0, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
     # Shoe Right wall (movable wall)
-    draw_line(p.SL, 0, p.SL, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
+    draw_line(p.SL, 2.0*p.RADIUS, p.SL, p.SH, current_matrix, 2, calculateN) # wall_type -> movable_wall
 
     begin_dye_region() 
     # Dye Left Wall

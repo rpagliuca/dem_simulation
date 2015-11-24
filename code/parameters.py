@@ -31,8 +31,8 @@ def load_parameters_pre():
 
     # Default flags
     realtimePlot = False # realtimePlot will slow down simulation, but gives a nice feedback
-    stepPlotFlag = False # Use with stepPlotSteps to plot every X steps
-    stepPlotSteps = 100
+    stepPlotFlag = True # Use with stepPlotSteps to plot every X steps
+    stepPlotSteps = 20
 
     # Physical and math constants
     G = 9.81 # gravity

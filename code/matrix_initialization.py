@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import init_overlap_fix
-import dye_profiles.h as dye_profile
+import dye_profiles.stepped as dye_profile
 import parameters as p # Load all global variables from parameters
 
 def matrix_initialization():

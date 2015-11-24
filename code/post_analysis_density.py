@@ -7,7 +7,7 @@ import parameters as p
 import glob
 import main_loop
 import saved_states
-import dye_profiles.h as dye_profile
+import dye_profiles.stepped as dye_profile
 import matplotlib.pyplot as plt
 import time
 import threading
