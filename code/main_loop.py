@@ -56,90 +56,96 @@ def main_loop(current_matrix):
     current_matrix = joblib.load(mem_share_file, mmap_mode="r+")
     current_matrix[:,:] = current_matrix_ram[:,:]
 
-    # Solving steps
-    for step in range(p.start_step, p.STEPS+1):
+    with joblib.Parallel(n_jobs=p.number_of_cores, max_nbytes=None) as parallel:
 
-        time = p.T0 + (step-1)*p.DT
+        # Solving steps
+        for step in range(p.start_step, p.STEPS+1):
 
-        if p.simulation_mode != 'replay':
+            time = p.T0 + (step-1)*p.DT
 
-            # First, we sort by y position to optimize contact forces
-            current_matrix[:,:] = current_matrix[current_matrix[:,p.Y].argsort()]
+            if p.simulation_mode != 'replay':
 
-            # Store current matrix as last matrix
-            last_matrix = np.copy(current_matrix)
+                # First, we sort by y position to optimize contact forces
+                current_matrix[:,:] = current_matrix[current_matrix[:,p.Y].argsort()]
 
-            # Reset matrix of forces
-            current_matrix[:,p.FX:p.FY+1] = np.zeros((p.N,p.DIMENSIONS))
+                # Store current matrix as last matrix
+                last_matrix = np.copy(current_matrix)
 
-            current_matrix[:,:] = forces.apply_forces(current_matrix)
+                # Reset matrix of forces
+                current_matrix[:,p.FX:p.FY+1] = np.zeros((p.N,p.DIMENSIONS))
 
-            # Calculate velocities from force
-            current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
+                current_matrix[:,:] = forces.apply_forces(current_matrix, parallel)
 
-            # Move shoe horizontally
-            if (time >= 0.2):
-                p.shoe_velocity = 0.09
-            current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
+                # Calculate velocities from force
+                current_matrix[:,p.VX:p.VY+1] = last_matrix[:,p.VX:p.VY+1] + ((current_matrix[:,p.FX:p.FY+1] + last_matrix[:,p.FX:p.FY+1]).transpose()*current_matrix[:,p.T]/(2*current_matrix[:,p.M])).transpose() * p.DT
 
-            # Calculate position from force and velocity
-            current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
+                # Move shoe horizontally
+                if (time >= 0.2):
+                    p.shoe_velocity = 0.09
+                current_matrix[current_matrix[:,p.WT] == 2, p.VX] = p.shoe_velocity
 
-        if p.realtimePlot or (p.stepPlotFlag and step % p.stepPlotSteps == 0):
-            plotNow = True
-        else:
-            plotNow = False
+                # Calculate position from force and velocity
+                current_matrix[:,p.X:p.Y+1] = last_matrix[:,p.X:p.Y+1] + current_matrix[:,p.VX:p.VY+1]*p.DT + (current_matrix[:,p.FX:p.FY+1].transpose()/(2*current_matrix[:,p.M])).transpose() * p.DT**2
 
-        if plotNow:
-            if scatterPointsParticles:
-                scatterPointsParticles.remove()
-                scatterPointsWall1.remove()
-                scatterPointsWall2.remove()
-                text.remove()
-            scatterPointsParticles = plt.scatter(current_matrix[current_matrix[:,p.T] == 1, p.X], current_matrix[current_matrix[:, p.T] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none')
-            scatterPointsWall1 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 1, p.X], current_matrix[current_matrix[:, p.WT] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
-            scatterPointsWall2 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 2, p.X], current_matrix[current_matrix[:, p.WT] == 2, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='red')
-
-            # Custom function to export replay plots as pdfs
-            SAVE_PLOT = False
-            if SAVE_PLOT:
-                plt.gcf().set_size_inches(10, 7)
-                text = main_axes.text(0.95, 0.05, '#' + str(step), horizontalalignment='right', verticalalignment='bottom', size='20', transform=main_axes.transAxes)
-                plt.xticks([])
-                plt.yticks([])
-                output_path = p.SAVE_SESSION_OUTPUT_PATH
-                output_image_dir = os.path.join(output_path, "..", "..", "replay_images")
-                output_image = os.path.join(output_image_dir, 'step' + str(step).zfill(11) + '.pdf')
-                print "Saving image " + output_image + "..."
-                if not os.path.exists(output_image_dir):
-                    os.makedirs(output_image_dir)
-                plt.savefig(output_image, format='pdf', bbox_inches='tight', dpi=50)
-
+            if p.realtimePlot or (p.stepPlotFlag and step % p.stepPlotSteps == 0):
+                plotNow = True
             else:
-                time_text = 'Time: ' + format(time, '.5f') + 's of ' + format(p.TF, '.5f') + "s\n"
-                text = main_axes.text(0.95, 0.95, time_text + static_text, horizontalalignment='right', verticalalignment='top', transform=main_axes.transAxes)
-                plt.draw()
-                plt.pause(1.0E-1)
+                plotNow = False
 
-        if p.SAVE_ENABLED and step % p.SAVE_SESSION_STEP_INTERVAL == 0:
-            output_path = p.SAVE_SESSION_OUTPUT_PATH
-            if (p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP):
-                output_path = os.path.join(output_path, "step" + str(step))
+            if plotNow:
+                if scatterPointsParticles:
+                    scatterPointsParticles.remove()
+                    scatterPointsWall1.remove()
+                    scatterPointsWall2.remove()
+                    text.remove()
+                scatterPointsParticles = plt.scatter(current_matrix[current_matrix[:,p.T] == 1, p.X], current_matrix[current_matrix[:, p.T] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none')
+                scatterPointsWall1 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 1, p.X], current_matrix[current_matrix[:, p.WT] == 1, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='green')
+                scatterPointsWall2 = plt.scatter(current_matrix[current_matrix[:, p.WT] == 2, p.X], current_matrix[current_matrix[:, p.WT] == 2, p.Y], s=p.scatterPlotPointSize, facecolors='none', color='red')
 
-            print "Saving session to folder " + output_path + "/ ..."
-            # Create output folder if not exists
-            if not os.path.exists(output_path):
-                os.makedirs(output_path)
+                # Custom function to export replay plots as pdfs
+                if p.simulation_mode == 'replay':
+                    plt.gcf().set_size_inches(10, 7)
+                    text = main_axes.text(0.95, 0.05, '#' + str(step-1), horizontalalignment='right', verticalalignment='bottom', size='20', transform=main_axes.transAxes)
+                    plt.xticks([])
+                    plt.yticks([])
+                    output_path = p.SAVE_SESSION_OUTPUT_PATH
+                    simulation_name = os.path.basename(os.path.dirname(output_path))
+                    output_image_dir = os.path.join(output_path, "..", "..", simulation_name + "_replay_images")
+                    output_image = os.path.join(output_image_dir, 'step' + str(step-1).zfill(11))
+                    if not os.path.exists(output_image_dir):
+                        print "Creating directory " + output_image_dir + "..."
+                        os.makedirs(output_image_dir)
+                    print "Saving image " + output_image + ".png ..."
+                    plt.savefig(output_image + '.png', format='png', bbox_inches='tight', dpi=50)
+                    print "Saving image " + output_image + ".pdf ..."
+                    plt.savefig(output_image + '.pdf', format='pdf', bbox_inches='tight', dpi=50)
+                    plt.draw()
+                    plt.pause(1.0E-1)
+                else:
+                    time_text = 'Time: ' + format(time, '.5f') + 's of ' + format(p.TF, '.5f') + "s\n"
+                    text = main_axes.text(0.95, 0.95, time_text + static_text, horizontalalignment='right', verticalalignment='top', transform=main_axes.transAxes)
+                    plt.draw()
+                    plt.pause(1.0E-1)
 
-            # Unify all parameters into a single numpy array
-            parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES, p.min_x, p.min_y, p.max_x, p.max_y ])
+            if p.SAVE_ENABLED and step % p.SAVE_SESSION_STEP_INTERVAL == 0:
+                output_path = p.SAVE_SESSION_OUTPUT_PATH
+                if (p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP):
+                    output_path = os.path.join(output_path, "step" + str(step))
 
-            # Export current state to file
-            np.savetxt(os.path.join(output_path, "current_matrix.txt"), current_matrix)
-            # Export simulation parameters to file
-            np.savetxt(os.path.join(output_path, "parameters.txt"), parameters)
+                print "Saving session to folder " + output_path + "/ ..."
+                # Create output folder if not exists
+                if not os.path.exists(output_path):
+                    os.makedirs(output_path)
 
-        print 'Done step ', str(step), '.' 
+                # Unify all parameters into a single numpy array
+                parameters = np.array([p.SAVE_SESSION_STEP_INTERVAL, p.SAVE_SESSION_DIFFERENT_FILE_PER_STEP, p.SH, p.SL, p.SH_MULTIPLICATOR, p.DH, p.DL, p.N, p.RADIUS, p.scatterPlotPointSize, p.MASS, p.MU, p.MU_A, p.KAPPA_R, p.MU_W, p.shoe_velocity, step, p.T0, p.DT, p.STEPS, p.GBPM_GAMMA, p.GAMMA_R, p.E_TILDE, p.N_WALL, p.N_PARTICLES, p.min_x, p.min_y, p.max_x, p.max_y ])
+
+                # Export current state to file
+                np.savetxt(os.path.join(output_path, "current_matrix.txt"), current_matrix)
+                # Export simulation parameters to file
+                np.savetxt(os.path.join(output_path, "parameters.txt"), parameters)
+
+            print 'Done step ', str(step), '.' 
 
     plt.clf()
     

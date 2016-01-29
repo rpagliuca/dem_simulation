@@ -6,11 +6,11 @@ import numpy as np
 import joblib
 import os
 
-def apply_forces(current_matrix):
+def apply_forces(current_matrix, parallel):
 
     # Using multicores, we apply forces that depend on the neighbours of the particle (we must loop through them all)
     n_split = int(np.floor(p.N/p.number_of_cores))
-    joblib.Parallel(n_jobs=p.number_of_cores, max_nbytes=None)( # Multi core
+    parallel( # Multi core
         joblib.delayed(loop_forces)(current_matrix, i*n_split, (i+1)*n_split-1) for i in range(0, p.number_of_cores))
 
     # Apply forces that do not depend on neighbours

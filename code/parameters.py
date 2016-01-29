@@ -32,7 +32,7 @@ def load_parameters_pre():
     # Default flags
     realtimePlot = False # realtimePlot will slow down simulation, but gives a nice feedback
     stepPlotFlag = False # Use with stepPlotSteps to plot every X steps
-    stepPlotSteps = 20
+    stepPlotSteps = 50
 
     # Physical and math constants
     G = 9.81 # gravity
@@ -72,7 +72,7 @@ def load_default_parameters():
     scatterPlotPointSize = 1.0E8 * RADIUS**2
 
     # This is the desired number of particles to be simulated
-    DESIRED_N_PARTICLES = 1000
+    DESIRED_N_PARTICLES = 5000
     # Note: the real number of simulated particles (N) will vary. It is the sum of the DESIRED_N_PARTICLES, with the number of particles needed to create the walls of the dye, and the subtraction of the conflicting overlapped particles that will be excluded from simulation after random generation
 
     # Simulation parameters taken from BIRWISCH et al., 2009
